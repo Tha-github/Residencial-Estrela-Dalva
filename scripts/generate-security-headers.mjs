@@ -38,6 +38,27 @@ const csp=[
   'upgrade-insecure-requests',
 ].join('; ');
 
+// GitHub Pages não interpreta o formato `_headers` do Cloudflare. Emitir CSP
+// também como meta para que navegadores estáticos recebam a política possível.
+// `frame-ancestors` só funciona como header HTTP e foi omitido desta meta.
+const metaCsp=[
+  "default-src 'self'",
+  `script-src ${scriptPolicy}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self'",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  'upgrade-insecure-requests',
+].join('; ');
+for(const file of await htmlFiles('dist')){
+  const html=await readFile(file,'utf8');
+  if(!html.includes('</head>'))continue;
+  await writeFile(file,html.replace('</head>',`<meta http-equiv="Content-Security-Policy" content="${metaCsp}"></head>`));
+}
+
 const headers=`/*
   Content-Security-Policy: ${csp}
   Strict-Transport-Security: max-age=31536000
@@ -53,3 +74,4 @@ const headers=`/*
   Cache-Control: no-store
 `;
 await writeFile('dist/_headers',headers);
+await writeFile('dist/.nojekyll','');

@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { readdir } from 'node:fs/promises';
 
 const mode=process.env.PUBLIC_DEPLOY_ENV || 'development';
+const base=(process.env.BASE_PATH || '/').replace(/\/+$/,'')+'/';
 const html=await readFile('dist/index.html','utf8');
 const robots=await readFile('dist/robots.txt','utf8');
 const headers=await readFile('dist/_headers','utf8');
@@ -14,6 +15,8 @@ assert.match(html,/<meta name="description" content="[^"]+">/,'Meta description 
 assert.ok(html.indexOf('<h1') < html.indexOf('<h2'),'Heading order must start at H1');
 await access('dist/favicon.svg');
 await access('dist/og-residencial.png');
+assert.ok(html.includes(`href="${base}favicon.svg"`),'Favicon must use the deployment base path');
+assert.ok(html.includes('http-equiv="Content-Security-Policy"'),'Static HTML must carry the CSP meta policy');
 for(const header of ['Content-Security-Policy:','Strict-Transport-Security: max-age=31536000','X-Content-Type-Options: nosniff','Referrer-Policy: strict-origin-when-cross-origin','X-Frame-Options: DENY'])assert.ok(headers.includes(header),`Security header missing: ${header}`);
 const scriptPolicy=headers.match(/script-src ([^;\r\n]+)/)?.[1]||'';
 async function verifyScriptHashes(dir){

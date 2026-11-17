@@ -6,7 +6,7 @@
 
 - Astro gera imagens responsivas em AVIF/WebP com fallback, dimensões explícitas e lazy loading nas miniaturas. A imagem do hero recebe prioridade alta e não usa lazy loading.
 - Fontes Figtree e Instrument Serif são locais; não há requisição a CDN de fontes. Não há mapa incorporado nem scripts de terceiros. A localização usa link leve para Google Maps.
-- CSS e JavaScript são servidos como ativos locais; ativos `/_astro/` recebem cache imutável de um ano pelo `_headers` gerado. A compressão e os headers efetivos dependem do Cloudflare Pages.
+- CSS e JavaScript são servidos como ativos locais; o build continua gerando `_headers`, mas GitHub Pages não interpreta essa configuração Cloudflare. Cache e compressão dependem do GitHub Pages e não foram medidos em produção.
 - Estilos definem foco visível, link para pular ao conteúdo, nomes acessíveis, alt textual para imagens, lightbox operável por teclado e regras para `prefers-reduced-motion`.
 
 ## Verificações e medições desta revisão
@@ -20,8 +20,8 @@
 ## Pendências
 
 - Medir LCP, INP e CLS no domínio publicado com fotos reais, em Lighthouse/PageSpeed e, após tráfego, dados de campo. Não há baseline anterior comparável nesta revisão.
-- Validar compressão, cache e headers na resposta real do Pages.
-- Testar autenticação, logout, autorização, edição, upload, persistência e sessão expirada do painel com a aplicação Cloudflare Access, D1, R2 e deploy hook configurados. A configuração não existe neste workspace.
+- Validar compressão, cache e headers na resposta real do GitHub Pages.
+- O painel backend atual não pode ser testado em GitHub Pages, pois o provedor é estático; `/admin/` informa que a edição ocorre via repositório.
 - Os links externos foram conferidos quanto a URL e atributos seguros na prévia; não foi feita validação de disponibilidade dos serviços externos.
 - O Playwright imprimiu os 41 casos como `ok`, mas o processo não apresentou resumo/código de saída final antes de ser interrompido. Registrar uma execução final com encerramento normal quando o ambiente E2E estiver disponível.
 

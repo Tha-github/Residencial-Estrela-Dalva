@@ -2,10 +2,10 @@
 
 Registro curto das decisões tomadas e por quê. Atualize ao mudar qualquer uma.
 
-## D1 — Astro estático no Cloudflare Pages
+## D1 — Astro estático no GitHub Pages
 
-- **Decisão:** site público gerado como HTML estático (Astro 7, `output: 'static'`) e hospedado no Cloudflare Pages.
-- **Por quê:** é uma página de apresentação de hospedagem. HTML estático dá a melhor performance (LCP), menor superfície de ataque e custo zero. O repositório estava vazio, então não havia stack a preservar. A prévia do cliente já está no Cloudflare Pages.
+- **Decisão:** site público gerado como HTML estático (Astro 7, `output: 'static'`) e publicado no GitHub Pages via Actions. Para este repositório de projeto, `base` usa `/Residencial-Estrela-Dalva`.
+- **Por quê:** entrega simples, publicação atrelada à branch `main` e arquivos de origem visíveis no repositório. O provedor executa somente build estático; não executa as Functions/API do painel.
 - **Alternativa considerada:** Next.js na Vercel (stack usada em outro projeto). Descartada por ser mais pesada que o necessário para uma página.
 
 ## D2 — Conteúdo separado da apresentação
@@ -93,11 +93,11 @@ Registro curto das decisões tomadas e por quê. Atualize ao mudar qualquer uma.
 - **Barra de reserva no mobile:** só aparece depois de rolar além do hero, que já tem o CTA, via scroll-driven animation. Com movimento reduzido ou sem suporte, fica sempre visível.
 - **Páginas de desenvolvimento:** ficam em `src/dev-pages/` e são registradas por `injectRoute` apenas em `astro dev`. Antes estavam em `src/pages/` com `getStaticPaths` vazio, mas mesmo assim o módulo era empacotado e as imagens de exemplo acabavam no `dist` (verificado e corrigido).
 
-## D8 — Painel administrativo (implementado no código; ativação de produção pendente)
+## D8 — Painel administrativo (código legado não executado no GitHub Pages)
 
 - **Banco e arquivos:** Cloudflare Pages Functions, com D1 para o conteúdo (versionado) e R2 para as imagens.
 - **Login:** Cloudflare Access (código por e-mail, só o e-mail do proprietário), com validação do JWT do Access no servidor em cada requisição.
 - **Publicação:** ao salvar, um deploy hook reconstrói o site estático.
 - **Isolamento:** projeto, D1, R2 e Access separados do Residencial Ametista.
 
-Implementação inicial registrada em [docs/PAINEL-ADMIN.md](PAINEL-ADMIN.md). A ativação depende de criar bindings, política Access, secrets e deploy hook na conta de produção.
+Os arquivos de Functions/D1/R2 permanecem visíveis no repositório como proposta anterior, mas não são empacotados nem funcionam no GitHub Pages. A rota `/admin/` explica a edição via repositório. Veja [docs/PAINEL-ADMIN.md](PAINEL-ADMIN.md).

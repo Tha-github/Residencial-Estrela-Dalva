@@ -11,6 +11,8 @@ const LATIN =
 
 const deployEnv =env.PUBLIC_DEPLOY_ENV ?? 'development';
 const siteUrl = env.PUBLIC_SITE_URL || undefined;
+const basePath = process.env.BASE_PATH ?? env.BASE_PATH ?? '/';
+const astroBase = basePath === '/' ? '/' : `/${basePath.replace(/^\/+|\/+$/g, '')}`;
 
 // Falha cedo: um build de produção sem domínio canônico geraria URLs erradas.
 if (deployEnv === 'production' && !siteUrl) {
@@ -38,7 +40,8 @@ const devOnlyRoutes = {
 
 // https://docs.astro.build/en/reference/configuration-reference/
 export default defineConfig({
-  site: siteUrl,
+  site: siteUrl ?? (process.env.GITHUB_ACTIONS === 'true' ? 'https://tha-github.github.io' : undefined),
+  base: astroBase,
   integrations: [devOnlyRoutes],
   output: 'static',
   trailingSlash: 'ignore',

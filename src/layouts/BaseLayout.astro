@@ -11,10 +11,17 @@ interface Props {
   noindex?: boolean;
 }
 
-const { title, description, socialImage = '/og-residencial.png', noindex = false } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const { title, description, socialImage = `${baseUrl}og-residencial.png`, noindex = false } = Astro.props;
 const isProduction = PUBLIC_DEPLOY_ENV === 'production';
 const robots = !isProduction || noindex ? 'noindex, nofollow' : undefined;
-const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const basePath = baseUrl === '/' ? '' : baseUrl.replace(/\/$/, '');
+const routePath = basePath && Astro.url.pathname.startsWith(basePath)
+  ? Astro.url.pathname.slice(basePath.length)
+  : Astro.url.pathname;
+const canonical = Astro.site && isProduction && !noindex
+  ? new URL(`${baseUrl}${routePath.replace(/^\/+/, '')}`, Astro.site).href
+  : undefined;
 ---
 
 <!doctype html>
@@ -22,6 +29,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     {robots && <meta name="robots" content={robots} />}
@@ -40,7 +48,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     {canonical && !noindex && description && <meta name="twitter:title" content={title} />}
     {canonical && !noindex && description && <meta name="twitter:description" content={description} />}
     {canonical && !noindex && description && <meta name="twitter:image" content={new URL(socialImage, Astro.site).href} />}
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${baseUrl}favicon.svg`} />
     <meta name="theme-color" content="#10313a" />
     <meta name="generator" content={Astro.generator} />
     {/* Preload só do que aparece acima da dobra: display normal (não o itálico) e o texto. */}
