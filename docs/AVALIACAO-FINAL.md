@@ -17,7 +17,7 @@
 | 8 | SEO | **PENDENTE** | Build do Pages fica em `preview`/noindex até aprovação dos dados. Canonical, domínio e indexação final dependem da decisão do cliente e configuração Pages. |
 | 9 | Performance | **PENDENTE** | Ativos e imagens locais são otimizados no build; LCP/INP de campo e Lighthouse não foram medidos. |
 | 10 | Acessibilidade/estabilidade | **PENDENTE** | Testes automatizados de teclado, foco, contraste de tokens, reduced motion e layout passam; falta revisão manual com leitor de tela e conteúdo/fotos finais. |
-| 11 | Build/testes | **PENDENTE até workflow** | Antes do hosting, `npm run validate` passou localmente. A correção adiciona teste/build no Actions, mas o status do novo run precisa ser confirmado no GitHub após push. |
+| 11 | Build/testes | **APROVADO local e no GitHub Actions** | `npm run validate` passou local com o base path do projeto e no run `44143395477`; build e deploy terminaram verdes. HTTP HEAD retornou 200 para `/`, `/admin/`, favicon, CSS, fontes e `/404.html`; a página servida tem `noindex` e não contém placeholders. |
 | 12 | Documentação/entrega | **APROVADO documentalmente** | Instruções atuais em [DEPLOY-GITHUB-PAGES.md](DEPLOY-GITHUB-PAGES.md), [PAINEL-ADMIN.md](PAINEL-ADMIN.md) e [PENDENCIAS-CLIENTE.md](PENDENCIAS-CLIENTE.md). `CLAUDE.md` está vazio. |
 
 ## Como publicar e verificar
@@ -26,7 +26,7 @@ O workflow `.github/workflows/pages.yml` valida e compila o site para `dist`, en
 
 `https://tha-github.github.io/Residencial-Estrela-Dalva/`
 
-Em **Settings → Pages → Build and deployment**, a fonte deve ser **GitHub Actions**. Depois do push, acompanhar **Actions → Build and deploy GitHub Pages**. Instruções completas: [DEPLOY-GITHUB-PAGES.md](DEPLOY-GITHUB-PAGES.md).
+Em **Settings → Pages → Build and deployment**, a fonte agora está configurada como **GitHub Actions**. Run `44143395477` implantou com sucesso. Instruções completas: [DEPLOY-GITHUB-PAGES.md](DEPLOY-GITHUB-PAGES.md).
 
 ## Conteúdo e edição
 

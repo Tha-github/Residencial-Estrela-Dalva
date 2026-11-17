@@ -12,9 +12,9 @@ O projeto Astro usa `BASE_PATH=/Residencial-Estrela-Dalva`; o prefixo é aplicad
 
 1. Abra **Settings → Pages** no repositório.
 2. Em **Build and deployment → Source**, selecione **GitHub Actions**. A configuração anterior publicava a branch com Jekyll e falhava tentando ler `.astro` como YAML.
-3. Faça push na branch `main` ou execute manualmente o workflow **Build and deploy GitHub Pages** em **Actions**.
+3. Faça push na branch `main` ou execute manualmente o workflow **Build and deploy GitHub Pages** em **Actions**. O primeiro deploy desta configuração concluiu com sucesso no run `44143395477`.
 4. O workflow instala Node 24 e dependências do lockfile, roda `npm run validate`, envia `dist/` como artefato e publica pelo ambiente `github-pages`.
-5. Confira que os dois jobs (`build` e `deploy`) ficaram verdes e abra o endereço publicado. URLs profundas, imagens, fontes, favicon e página 404 devem usar o prefixo do repositório.
+5. Confira que os dois jobs (`build` e `deploy`) ficaram verdes e abra o endereço publicado. O primeiro deploy respondeu `200` em homepage, admin informativo, favicon, CSS e 404. URLs profundas, imagens e fontes devem usar o prefixo do repositório.
 
 O workflow publica em `PUBLIC_DEPLOY_ENV=preview` e `noindex` enquanto faltarem dados e aprovações do cliente. Depois de completar [PENDENCIAS-CLIENTE.md](PENDENCIAS-CLIENTE.md), alterar o valor do workflow para `production`; nesse modo o build falha deliberadamente até conteúdo obrigatório e domínio HTTPS serem configurados.
 

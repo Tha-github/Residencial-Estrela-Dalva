@@ -14,7 +14,7 @@
 - `npm run validate`: passou (lint, typecheck, 64 testes unitários, build e validação SEO).
 - Playwright: 41 casos mostrados como aprovados. Cobrem mobile 320/390, tablet 768 e desktop 1440; overflow, erros de console, links internos/externos, CTA de reserva, galeria, teclado, foco, movimento reduzido, carregamento da imagem hero e estabilidade de layout.
 - Os testes de CLS em 360 px e 1440 px passaram com limite `< 0,05` durante carga e rolagem. `docs/DECISOES.md` registra baseline de 0,088 em 360 px antes da correção e resultado abaixo de 0,05 depois; a suíte atual só verifica o limite e não grava o valor posterior exato.
-- Build atual: 14 arquivos, 231.652 bytes no total, incluindo HTML, fontes, CSS, imagens e metadados. É o tamanho descomprimido no disco, não o tamanho transferido pela rede.
+- Build atual do GitHub Pages: 13 arquivos, 228.230 bytes no total, incluindo HTML, fontes, CSS e metadados; zero source maps. É o tamanho descomprimido no disco, não o tamanho transferido pela rede. Os recursos locais referenciados pela página publicada responderam 200.
 - Não foi gerada medição Lighthouse/PageSpeed. LCP e INP numéricos não foram medidos. Sem domínio e fotos reais, uma pontuação local não representaria o conteúdo/hosting final.
 
 ## Pendências

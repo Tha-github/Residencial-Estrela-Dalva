@@ -1,6 +1,6 @@
 # Relatório de segurança — GitHub Pages
 
-**Revisão:** 17/11/2026. Escopo atual: repositório público, build estático e workflow GitHub Pages. O commit anterior falhou porque Jekyll tentou interpretar `.astro`; esse log foi lido pelo `gh run view` e motivou o workflow Astro em `.github/workflows/pages.yml`. A correção precisa de um novo run para confirmar o deploy.
+**Revisão:** 17/11/2026. Escopo atual: repositório público, build estático e workflow GitHub Pages. O commit `7ad50d5` falhou porque Jekyll tentou interpretar `.astro` como YAML; o log foi lido via GitHub CLI. O workflow Astro foi adicionado e o run `44143395477` concluiu build e deploy com sucesso.
 
 ## Estado e ações
 
@@ -11,11 +11,12 @@
 | **Pendente — dependências** | `npm audit` falhou ao acessar `registry.npmjs.org`; `npm ls --depth=0` confirma instalação compatível com lockfile, não ausência de advisories. | Repetir auditoria quando registry estiver acessível. Não alegar que não há vulnerabilidades. |
 | **Pendente — histórico de segredos** | A busca local anterior não encontrou padrões de segredo de alta confiança; `.env` e `.dev.vars` são ignorados. O primeiro commit é `7ad50d5`; este relatório não substitui varredura Gitleaks/TruffleHog do histórico. | Fazer varredura do histórico e manter secrets fora do repo. Os arquivos Cloudflare legados não contêm credenciais reais conhecidas. |
 | **Baixo — conteúdo e XSS** | JSON passa por Zod estrito; conteúdo Astro é escapado; links externos usam allowlists HTTPS; o ícone SVG usa paths constantes. | Mantidos. O painel backend legado tem validação adicional, mas não roda neste host. |
-| **Pendente — deploy atual** | A execução que falhou era Jekyll sem workflow. | Workflow próprio Astro foi adicionado, com `npm run validate`, Node 24, artefato `dist` e deploy-pages. O resultado precisa ser verificado no Actions após o push e `Settings → Pages` deve usar `GitHub Actions`. |
+| **Resolvido — falha do deploy** | A execução que falhou era Jekyll sem workflow. GitHub Actions confirmou build e deploy verdes no run `44143395477`. A URL, favicon, CSS, `/admin/` e 404 responderam 200. | Workflow próprio Astro roda `npm run validate`, Node 24 e publica o artefato `dist`; a origem Pages está em `GitHub Actions`. |
+| **Pendente do provedor — headers** | `HEAD /` em 17/11/2026 retornou `200`, `Strict-Transport-Security`, `Cache-Control: max-age=600` e `Content-Type: text/html; charset=utf-8`. `X-Content-Type-Options`, `X-Frame-Options` e `Referrer-Policy` não apareceram nessa resposta. | GitHub forneceu HSTS nessa medição; não presumir que todo header desejado é configurável. CSP/referrer policy seguem no HTML como meta. Revalidar headers se o hosting mudar. |
 
 ## Configuração estática publicada
 
-- O workflow compila com `PUBLIC_DEPLOY_ENV=preview`, que mantém `noindex` enquanto faltam dados de cliente e links oficiais.
+- O workflow compila com `PUBLIC_DEPLOY_ENV=preview`, que mantém `noindex` enquanto faltam dados de cliente e links oficiais. A URL é acessível diretamente.
 - Astro aplica o `base` `/Residencial-Estrela-Dalva`; favicon, links internos e assets usam o prefixo da página de projeto.
 - O workflow envia somente `dist/`; arquivos fonte permanecem visíveis no repositório público, enquanto `functions/` e migrações não são executados pelo Pages.
 - Nenhum source map (`*.map`) deve ser publicado; verificar novamente no artefato do Actions.
