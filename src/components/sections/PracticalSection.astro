@@ -3,23 +3,34 @@
 import { getKeyFacts, SECTION_IDS } from '../../lib/content/derive';
 import type { Residencial } from '../../lib/content/schema';
 import Icon from '../ui/Icon.astro';
+import PreviewPlaceholder from '../ui/PreviewPlaceholder.astro';
 import Section from '../ui/Section.astro';
 
 interface Props {
   content: Residencial;
   tone?: 'default' | 'alt';
+  clientPreview?: boolean;
 }
 
-const { content, tone } = Astro.props;
+const { content, tone, clientPreview = false } = Astro.props;
 const p = content.practical;
 const facts = getKeyFacts(content);
 const hasSchedule = p.checkIn !== null || p.checkOut !== null;
+const missingFacts = [
+  [p.maxGuests, 'Capacidade máxima de hóspedes'],
+  [p.bedrooms, 'Número de quartos'],
+  [p.beds, 'Número e tipo de camas'],
+  [p.bathrooms, 'Número de banheiros'],
+  [p.areaM2, 'Área do imóvel'],
+  [p.checkIn, 'Horário de check-in'],
+  [p.checkOut, 'Horário de check-out'],
+].filter(([value]) => value === null).map(([, label]) => label as string);
 ---
 
 <Section id={SECTION_IDS.practical} eyebrow="Antes de reservar" title="Comodidades e informações" tone={tone}>
   <div class="practical">
     {
-      (facts.length > 0 || hasSchedule) && (
+      (facts.length > 0 || hasSchedule || clientPreview) && (
         <div class="block">
           <h3>O imóvel</h3>
           <dl class="specs">
@@ -41,13 +52,19 @@ const hasSchedule = p.checkIn !== null || p.checkOut !== null;
                 <dd>até as {p.checkOut}</dd>
               </div>
             )}
+            {clientPreview && missingFacts.map((label) => (
+              <div>
+                <dt>{label}</dt>
+                <dd class="pending-value">A confirmar</dd>
+              </div>
+            ))}
           </dl>
         </div>
       )
     }
 
     {
-      p.amenities.length > 0 && (
+      (p.amenities.length > 0 || clientPreview) && (
         <div class="block">
           <h3>Comodidades</h3>
           <ul class="checklist" role="list">
@@ -58,12 +75,13 @@ const hasSchedule = p.checkIn !== null || p.checkOut !== null;
               </li>
             ))}
           </ul>
+          {clientPreview && p.amenities.length === 0 && <PreviewPlaceholder shape="inline" label="Comodidades" />}
         </div>
       )
     }
 
     {
-      p.rules.length > 0 && (
+      (p.rules.length > 0 || clientPreview) && (
         <div class="block">
           <h3>Regras da casa</h3>
           <ul class="rules">
@@ -71,6 +89,7 @@ const hasSchedule = p.checkIn !== null || p.checkOut !== null;
               <li>{r}</li>
             ))}
           </ul>
+          {clientPreview && p.rules.length === 0 && <PreviewPlaceholder shape="inline" label="Regras da casa, se houver" />}
         </div>
       )
     }
@@ -121,6 +140,12 @@ const hasSchedule = p.checkIn !== null || p.checkOut !== null;
     margin: 0;
     font-weight: var(--font-weight-medium);
     text-align: right;
+  }
+
+  .specs .pending-value {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-regular);
   }
 
   .checklist {

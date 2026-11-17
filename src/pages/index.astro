@@ -19,4 +19,9 @@ const title = `${content.name} | Hospedagem na ${location.beach}`;
 const description = `${content.name}: hospedagem perto do mar na ${location.beach}, em ${location.city} (${location.state}). ConheÃ§a o residencial e reserve pela plataforma de sua preferÃªncia.`;
 ---
 
-<HomePage content={content} pageTitle={title} description={description} />
+<HomePage
+  content={content}
+  pageTitle={title}
+  description={description}
+  clientPreview={PUBLIC_DEPLOY_ENV === 'preview'}
+/>

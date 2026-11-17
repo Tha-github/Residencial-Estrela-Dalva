@@ -30,23 +30,31 @@ interface Props {
   pageTitle?: string;
   description?: string;
   noindex?: boolean;
+  clientPreview?: boolean;
 }
 
-const { content, pageTitle, description, noindex = false } = Astro.props;
+const { content, pageTitle, description, noindex = false, clientPreview = false } = Astro.props;
 const visible = getVisibility(content);
-const tone = getSectionTones(visible);
+const display = Object.fromEntries(Object.entries(visible).map(([key, value]) => [key, value || clientPreview])) as typeof visible;
+const tone = getSectionTones(display);
 const platforms = getBookingPlatforms(content);
-const nav = getNavItems(visible);
+const nav = getNavItems(display);
 const { location, hero } = content;
 const locationLabel = `${location.beach} · ${location.city}, ${location.stateCode}`;
 
 const bookingHref = `#${SECTION_IDS.booking}`;
-const heroCta = visible.booking ? { href: bookingHref, label: 'Ver opções de reserva' } : null;
+const heroCta = visible.booking || clientPreview ? { href: bookingHref, label: 'Ver opções de reserva' } : null;
 const heroSecondary = visible.about ? { href: `#${SECTION_IDS.about}`, label: 'Conhecer o residencial' } : null;
 ---
 
 <BaseLayout title={pageTitle ?? content.name} description={description} noindex={noindex}>
-  <Header slot="header" name={content.name} nav={nav} cta={visible.booking ? { href: bookingHref, label: 'Reservar' } : null} />
+  <Header slot="header" name={content.name} nav={nav} cta={visible.booking || clientPreview ? { href: bookingHref, label: clientPreview && !visible.booking ? 'Opções de reserva' : 'Reservar' } : null} />
+
+  {clientPreview && (
+    <div class="client-preview-banner" role="status">
+      Prévia para revisão: os quadros tracejados mostram onde entram fotos e informações ainda pendentes.
+    </div>
+  )}
 
   <Hero
     name={content.name}
@@ -56,18 +64,29 @@ const heroSecondary = visible.about ? { href: `#${SECTION_IDS.about}`, label: 'C
     image={hero.image}
     cta={heroCta}
     secondaryCta={heroSecondary}
+    clientPreview={clientPreview}
   />
 
-  {visible.about && <AboutSection content={content} tone={tone.about} />}
-  {visible.gallery && <GallerySection images={content.gallery} tone={tone.gallery} />}
-  {visible.highlights && <HighlightsSection highlights={content.highlights} tone={tone.highlights} />}
-  {visible.practical && <PracticalSection content={content} tone={tone.practical} />}
-  {visible.location && <LocationSection location={location} tone={tone.location} />}
-  {visible.booking && <BookingSection name={content.name} platforms={platforms} tone={tone.booking} />}
-  {visible.contact && <ContactSection contact={content.contact} tone={tone.contact} />}
+  {display.about && <AboutSection content={content} tone={tone.about} />}
+  {display.gallery && <GallerySection images={content.gallery} tone={tone.gallery} clientPreview={clientPreview} />}
+  {display.highlights && <HighlightsSection highlights={content.highlights} tone={tone.highlights} />}
+  {display.practical && <PracticalSection content={content} tone={tone.practical} clientPreview={clientPreview} />}
+  {display.location && <LocationSection location={location} tone={tone.location} clientPreview={clientPreview} />}
+  {display.booking && <BookingSection name={content.name} platforms={platforms} tone={tone.booking} clientPreview={clientPreview} />}
+  {display.contact && <ContactSection contact={content.contact} tone={tone.contact} clientPreview={clientPreview} />}
 
-  <PendingContent items={getPendingItems(content)} />
+  {!clientPreview && <PendingContent items={getPendingItems(content)} />}
 
   <Footer slot="footer" content={content} nav={nav} platforms={platforms} />
   {visible.booking && <MobileBookingBar slot="footer" />}
 </BaseLayout>
+
+<style>
+  .client-preview-banner {
+    padding: var(--space-3) var(--gutter);
+    background: var(--color-accent-soft);
+    color: var(--color-heading);
+    font-size: var(--text-sm);
+    text-align: center;
+  }
+</style>

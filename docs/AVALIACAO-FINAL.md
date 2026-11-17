@@ -5,6 +5,10 @@
 
 ## Checklist atualizado
 
+### Prévia pública com conteúdo pendente
+
+O build Pages permanece em modo `preview` e `noindex` enquanto aguarda aprovação. A página pública agora mantém espaços visuais para galeria, informações práticas, localização/Maps, anúncios de reserva e canais de contato ausentes. Os marcadores tracejados identificam conteúdo a enviar/confirmar; nenhuma URL ou dado operacional fictício é criado. O texto existente permanece como está até receber aprovação ou substituição do cliente.
+
 ### Revisão da captura publicada (17/11/2026)
 
 A captura de página inteira mostrou o cabeçalho sticky sendo pintado sobre a seção de apresentação, enquanto sua posição inicial ficava vazia. O hero sem foto real também ocupava quase toda a altura da tela e deixava o texto concentrado no rodapé. O cabeçalho agora permanece no fluxo da página, e o hero sem foto tem altura reduzida e conteúdo centralizado. A ausência de foto, galeria, links oficiais de reserva e dados operacionais continua pendente de material aprovado pelo cliente; nenhum dado foi inventado para preencher esses espaços.

@@ -7,28 +7,37 @@
 import type { BookingPlatform } from '../../lib/content/derive';
 import { SECTION_IDS } from '../../lib/content/derive';
 import Button from '../ui/Button.astro';
+import PreviewPlaceholder from '../ui/PreviewPlaceholder.astro';
 import Section from '../ui/Section.astro';
 
 interface Props {
   name: string;
   platforms: BookingPlatform[];
   tone?: 'default' | 'alt';
+  clientPreview?: boolean;
 }
 
-const { name, platforms, tone } = Astro.props;
+const { name, platforms, tone, clientPreview = false } = Astro.props;
 const many = platforms.length > 1;
+const pendingPlatforms = [
+  ['Booking.com', platforms.some((platform) => platform.id === 'booking')],
+  ['Airbnb', platforms.some((platform) => platform.id === 'airbnb')],
+  ['Decolar', platforms.some((platform) => platform.id === 'decolar')],
+].filter(([, available]) => !available).map(([label]) => label as string);
+const intro = platforms.length > 0
+  ? 'Você será direcionado ao anúncio oficial do residencial. Datas disponíveis, valores, condições e pagamento são consultados e confirmados diretamente na plataforma.'
+  : 'Os links dos anúncios oficiais serão adicionados depois que o cliente confirmar as plataformas em que deseja receber reservas.';
 ---
 
 <Section
   id={SECTION_IDS.booking}
   tone={tone}
   eyebrow="Reservas"
-  title={many ? 'Reserve pela plataforma de sua preferência' : `Reserve ${platforms[0]?.byName}`}
-  intro="Você será direcionado ao anúncio oficial do residencial. Datas disponíveis, valores, condições e pagamento são consultados e confirmados diretamente na plataforma."
+  title={many ? 'Reserve pela plataforma de sua preferência' : platforms[0] ? `Reserve ${platforms[0].byName}` : 'Opções para reservar'}
+  intro={intro}
 >
   <ul class="platforms" role="list">
-    {
-      platforms.map((pl) => (
+    {platforms.map((pl) => (
         <li class="platform">
           <h3 class="platform__name">{pl.name}</h3>
           <p class="platform__text">
@@ -38,13 +47,20 @@ const many = platforms.length > 1;
             Reservar {pl.inName}
           </Button>
         </li>
-      ))
-    }
+      ))}
+    {clientPreview && pendingPlatforms.map((label) => (
+        <li class="platform">
+          <h3 class="platform__name">{label}</h3>
+          <PreviewPlaceholder shape="inline" label="Link do anúncio" />
+        </li>
+      ))}
   </ul>
-  <p class="disclaimer">
-    Este site não realiza reservas nem recebe pagamentos. A reserva é concluída na plataforma escolhida, de acordo com as
-    regras dela.
-  </p>
+  {(platforms.length > 0 || clientPreview) && (
+    <p class="disclaimer">
+      Este site não realiza reservas nem recebe pagamentos. A reserva é concluída na plataforma escolhida, de acordo com as
+      regras dela.
+    </p>
+  )}
 </Section>
 
 <style>

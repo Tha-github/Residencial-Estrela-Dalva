@@ -3,6 +3,8 @@
 Itens necessários para publicar. Nenhum deles será preenchido por suposição.
 Situação em 16/11/2026.
 
+Na prévia pública do GitHub Pages, as seções sem dados já aparecem com espaços marcados para fotos, capacidade/horários, comodidades, Maps, links das plataformas e contato. Esses marcadores servem apenas para revisão; não são links ativos nem afirmações sobre o imóvel. O site segue `noindex` até aprovação e preenchimento dos dados obrigatórios.
+
 ## Obrigatórios para o lançamento
 
 - [ ] **Fotos reais do imóvel**, em alta resolução: fachada, sala, cozinha, quarto/mezanino, banheiro, terraço e detalhes

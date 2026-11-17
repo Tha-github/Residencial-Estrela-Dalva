@@ -20,11 +20,12 @@ interface Props {
   title?: string | null;
   subtitle?: string | null;
   image?: Image | null;
+  clientPreview?: boolean;
   cta?: { href: string; label: string } | null;
   secondaryCta?: { href: string; label: string } | null;
 }
 
-const { name, locationLabel, title, subtitle, image, cta, secondaryCta } = Astro.props;
+const { name, locationLabel, title, subtitle, image, cta, secondaryCta, clientPreview = false } = Astro.props;
 const heroFile = image ? resolveImage(image.src) : null;
 ---
 
@@ -54,6 +55,7 @@ const heroFile = image ? resolveImage(image.src) : null;
   <!-- Faixa do véu: acompanha a altura do texto, então o texto fica sempre sobre o véu forte. -->
   <div class="hero__band">
   <div class="hero__content container">
+    {clientPreview && !image && <p class="hero__photo-pending" role="note">Foto principal aguardando envio</p>}
     <p class="hero__location">
       <Icon name="map-pin" size={16} />
       {locationLabel}
@@ -165,6 +167,17 @@ const heroFile = image ? resolveImage(image.src) : null;
 
   .hero__content {
     position: relative;
+  }
+
+  .hero__photo-pending {
+    display: inline-flex;
+    margin-bottom: var(--space-5);
+    padding: var(--space-2) var(--space-4);
+    border: 1px dashed rgb(255 255 255 / 0.58);
+    border-radius: var(--radius-pill);
+    color: rgb(255 255 255 / 0.86);
+    font-size: var(--text-xs);
+    letter-spacing: 0.04em;
   }
 
   .hero__location {

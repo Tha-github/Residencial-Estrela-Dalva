@@ -7,14 +7,16 @@ import { SECTION_IDS } from '../../lib/content/derive';
 import type { Residencial } from '../../lib/content/schema';
 import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
+import PreviewPlaceholder from '../ui/PreviewPlaceholder.astro';
 import Section from '../ui/Section.astro';
 
 interface Props {
   location: Residencial['location'];
   tone?: 'default' | 'alt';
+  clientPreview?: boolean;
 }
 
-const { location, tone } = Astro.props;
+const { location, tone, clientPreview = false } = Astro.props;
 ---
 
 <Section id={SECTION_IDS.location} eyebrow="Localização" title={`${location.beach}, ${location.city}`} tone={tone}>
@@ -24,6 +26,7 @@ const { location, tone } = Astro.props;
     </div>
     <div>
       {location.address && <address class="location__address">{location.address}</address>}
+      {clientPreview && !location.address && <p class="location__pending">Endereço completo a confirmar</p>}
       <p class="location__region">
         {location.beach} · {location.city}, {location.state}
       </p>
@@ -34,6 +37,7 @@ const { location, tone } = Astro.props;
           </Button>
         )
       }
+      {clientPreview && !location.mapsUrl && <PreviewPlaceholder shape="inline" label="Link do Google Maps" />}
     </div>
   </div>
 </Section>
@@ -67,6 +71,12 @@ const { location, tone } = Astro.props;
     font-size: var(--text-lg);
     font-weight: var(--font-weight-medium);
     color: var(--color-heading);
+  }
+
+  .location__pending {
+    margin-bottom: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
   }
 
   .location__region {

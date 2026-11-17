@@ -77,6 +77,20 @@ test('cabeçalho fica no topo do documento e não sobrepõe o conteúdo', async 
   expect(layout.heroTop).toBeGreaterThanOrEqual(layout.headerBottom);
 });
 
+test('prévia do cliente mostra espaços pendentes sem criar links falsos', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await expect(page.getByRole('status')).toContainText('Prévia para revisão');
+  await expect(page.locator('#fotos')).toBeVisible();
+  await expect(page.locator('#informacoes')).toContainText('Capacidade máxima de hóspedes');
+  await expect(page.locator('#localizacao')).toContainText('Link do Google Maps');
+  await expect(page.locator('#reservas')).toContainText('Booking.com');
+  await expect(page.locator('#reservas')).toContainText('Airbnb');
+  await expect(page.locator('#reservas')).toContainText('Decolar');
+  await expect(page.locator('#reservas a')).toHaveCount(0);
+  await expect(page.locator('#contato')).toContainText('WhatsApp, se desejado');
+});
+
 test('menu mobile abre, fecha com Esc e devolve o foco', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/dev/estilo');

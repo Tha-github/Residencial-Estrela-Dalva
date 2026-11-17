@@ -3,21 +3,25 @@
 import { formatWhatsapp, instagramHandle, SECTION_IDS, whatsappUrl } from '../../lib/content/derive';
 import type { Residencial } from '../../lib/content/schema';
 import Icon from '../ui/Icon.astro';
+import PreviewPlaceholder from '../ui/PreviewPlaceholder.astro';
 import Section from '../ui/Section.astro';
 
 interface Props {
   contact: Residencial['contact'];
   tone?: 'default' | 'alt';
+  clientPreview?: boolean;
 }
 
-const { contact, tone } = Astro.props;
+const { contact, tone, clientPreview = false } = Astro.props;
 ---
 
 <Section
   id={SECTION_IDS.contact}
   eyebrow="Contato"
   title="Fale com o residencial"
-  intro="Para dúvidas sobre a hospedagem. Reservas são feitas pelas plataformas indicadas acima."
+  intro={clientPreview
+    ? 'Os canais de contato serão preenchidos após a confirmação do cliente. Reservas serão feitas pelas plataformas oficiais.'
+    : 'Para dúvidas sobre a hospedagem. Reservas são feitas pelas plataformas indicadas acima.'}
   tone={tone}
 >
   <ul class="channels" role="list">
@@ -35,6 +39,9 @@ const { contact, tone } = Astro.props;
         </li>
       )
     }
+    {clientPreview && !contact.whatsapp && <li><PreviewPlaceholder shape="inline" label="WhatsApp, se desejado" /></li>}
+    {clientPreview && !contact.instagram && <li><PreviewPlaceholder shape="inline" label="Instagram, se desejado" /></li>}
+    {clientPreview && !contact.email && <li><PreviewPlaceholder shape="inline" label="E-mail, se desejado" /></li>}
     {
       contact.instagram && (
         <li>
