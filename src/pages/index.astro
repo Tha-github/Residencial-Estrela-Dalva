@@ -1,0 +1,22 @@
+﻿---
+/**
+ * PÃ¡gina inicial â€” conteÃºdo real (src/data/residencial.json).
+ *
+ * Trava de lanÃ§amento: em PUBLIC_DEPLOY_ENV=production o build falha se algum
+ * dado obrigatÃ³rio (fotos, links de reserva, Maps, capacidade...) ainda estiver
+ * pendente. Para revisar com o cliente antes disso, use PUBLIC_DEPLOY_ENV=preview.
+ */
+import { PUBLIC_DEPLOY_ENV } from 'astro:env/client';
+import HomePage from '../components/HomePage.astro';
+import { getContent } from '../lib/content/load';
+import { assertReadyForLaunch } from '../lib/content/pending';
+
+const content = getContent();
+if (PUBLIC_DEPLOY_ENV === 'production') assertReadyForLaunch(content);
+
+const { location } = content;
+const title = `${content.name} | Hospedagem na ${location.beach}`;
+const description = `${content.name}: hospedagem perto do mar na ${location.beach}, em ${location.city} (${location.state}). ConheÃ§a o residencial e reserve pela plataforma de sua preferÃªncia.`;
+---
+
+<HomePage content={content} pageTitle={title} description={description} />

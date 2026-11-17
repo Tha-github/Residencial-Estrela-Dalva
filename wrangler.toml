@@ -1,0 +1,13 @@
+name = "residencial-estrela-dalva-pages"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "CONTENT"
+database_name = "residencial-estrela-dalva-content"
+database_id = "SUBSTITUA_PELO_ID_DO_D1"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "residencial-estrela-dalva-media"

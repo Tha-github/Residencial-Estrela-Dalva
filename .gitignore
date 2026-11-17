@@ -1,0 +1,23 @@
+# build
+dist/
+.astro/
+coverage/
+test-results/
+playwright-report/
+
+# deps
+node_modules/
+
+# ambiente — nunca versionar valores reais
+.env
+.env.*
+!.env.example
+.dev.vars
+.wrangler/
+
+# sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+*.log

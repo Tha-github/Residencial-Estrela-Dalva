@@ -1,0 +1,160 @@
+---
+/**
+ * Botão/link de ação.
+ * - Com `href`, renderiza <a>; sem, <button>.
+ * - `external`: abre em nova aba com rel seguro e avisa leitores de tela.
+ * Variantes: primary (ação principal), secondary (contorno), on-image (sobre foto), quiet (texto).
+ */
+import type { HTMLAttributes } from 'astro/types';
+import Icon, { type IconName } from './Icon.astro';
+
+interface Props {
+  href?: string;
+  variant?: 'primary' | 'secondary' | 'on-image' | 'quiet';
+  size?: 'md' | 'lg';
+  external?: boolean;
+  icon?: IconName;
+  type?: 'button' | 'submit';
+  class?: string;
+  'aria-describedby'?: string;
+  'data-variant'?: string;
+}
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  external = false,
+  icon,
+  type = 'button',
+  class: className,
+  ...rest
+} = Astro.props;
+
+const classes = ['btn', `btn--${variant}`, `btn--${size}`, className];
+const trailingIcon: IconName | undefined = icon ?? (external ? 'arrow-up-right' : undefined);
+const linkAttrs: HTMLAttributes<'a'> = external ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+---
+
+{
+  href ? (
+    <a href={href} class:list={classes} {...linkAttrs} {...rest}>
+      <span class="btn__label">
+        <slot />
+      </span>
+      {trailingIcon && <Icon name={trailingIcon} size={18} />}
+      {external && <span class="visually-hidden">(abre em nova aba)</span>}
+    </a>
+  ) : (
+    <button type={type} class:list={classes} {...rest}>
+      <span class="btn__label">
+        <slot />
+      </span>
+      {trailingIcon && <Icon name={trailingIcon} size={18} />}
+    </button>
+  )
+}
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--tap-target);
+    padding: var(--space-3) var(--space-5);
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-sans-stack);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-standard),
+      color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .btn--lg {
+    min-height: 52px;
+    padding: var(--space-4) var(--space-6);
+    font-size: var(--text-base);
+  }
+
+  .btn :global(.icon) {
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .btn:hover :global(.icon) {
+    transform: translateX(3px);
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn--primary {
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+  }
+
+  .btn--primary:hover {
+    background: var(--color-accent-hover);
+    color: var(--color-accent-contrast);
+  }
+
+  .btn--secondary {
+    background: transparent;
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .btn--secondary:hover {
+    background: var(--color-accent-soft);
+    color: var(--color-accent-hover);
+  }
+
+  .btn--on-image {
+    background: var(--color-on-image);
+    color: var(--color-heading);
+  }
+
+  .btn--on-image:hover {
+    background: var(--color-accent-soft);
+    color: var(--color-heading);
+  }
+
+  .btn--on-image:focus-visible {
+    outline-color: var(--color-focus-on-dark);
+  }
+
+  .btn--quiet {
+    min-height: var(--tap-target);
+    padding-inline: 0;
+    background: none;
+    color: var(--color-accent);
+    border-radius: var(--radius-sm);
+  }
+
+  .btn--quiet .btn__label {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+  }
+
+  .btn--quiet:hover {
+    color: var(--color-accent-hover);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn:hover :global(.icon),
+    .btn:active {
+      transform: none;
+    }
+  }
+</style>

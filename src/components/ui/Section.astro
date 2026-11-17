@@ -1,0 +1,72 @@
+---
+/**
+ * Seção padrão: ritmo vertical, cabeçalho (eyebrow + título + introdução) e conteúdo.
+ * O título é obrigatório: cada seção pública precisa de um heading para navegação assistiva.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  id: string;
+  title: string;
+  eyebrow?: string;
+  intro?: string;
+  tone?: 'default' | 'alt';
+  width?: 'content' | 'wide';
+  headingLevel?: 2 | 3;
+  class?: string;
+}
+
+const {
+  id,
+  title,
+  eyebrow,
+  intro,
+  tone = 'default',
+  width = 'content',
+  headingLevel = 2,
+  class: className,
+} = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const headingId = `${id}-titulo`;
+---
+
+<section id={id} class:list={['section', `section--${tone}`, className]} aria-labelledby={headingId}>
+  <div class:list={['container', { 'container--wide': width === 'wide' }]}>
+    <header class="section__header reveal">
+      {
+        eyebrow && (
+          <p class="eyebrow">
+            <Icon name="star" size={10} class="section__star" />
+            {eyebrow}
+          </p>
+        )
+      }
+      <Heading id={headingId} class="section__title">{title}</Heading>
+      {intro && <p class="lead section__intro">{intro}</p>}
+    </header>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-block: var(--section-gap);
+  }
+
+  .section--alt {
+    background: var(--color-surface-alt);
+  }
+
+  .section__header {
+    max-width: var(--width-prose);
+    margin-bottom: var(--space-7);
+  }
+
+  .section__intro {
+    margin-top: var(--space-2);
+  }
+
+  .section :global(.section__star) {
+    color: var(--color-highlight);
+  }
+</style>

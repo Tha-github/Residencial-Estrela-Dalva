@@ -1,0 +1,57 @@
+{
+  "name": "Residencial Estrela Dalva",
+  "location": {
+    "beach": "Praia dos Ingleses",
+    "city": "Florianópolis",
+    "state": "Santa Catarina",
+    "stateCode": "SC",
+    "address": null,
+    "mapsUrl": null
+  },
+  "hero": {
+    "title": "Perto do mar, no norte da Ilha de Santa Catarina.",
+    "subtitle": null,
+    "image": null
+  },
+  "about": {
+    "title": "Hospedagem na Praia dos Ingleses",
+    "paragraphs": [
+      "O Residencial Estrela Dalva fica na Praia dos Ingleses, bairro de praia no norte da Ilha de Santa Catarina, em Florianópolis. A proximidade com o mar é o ponto de partida da estadia: dias de praia e a região do norte da Ilha para conhecer no seu ritmo.",
+      "As reservas são feitas pelas plataformas em que o residencial está anunciado. Lá você consulta datas, valores e condições e conclui a reserva diretamente na plataforma escolhida."
+    ]
+  },
+  "highlights": [
+    {
+      "title": "Perto do mar",
+      "text": "A orla da Praia dos Ingleses fica próxima ao residencial, para que o mar faça parte da rotina da viagem.",
+      "icon": "waves"
+    },
+    {
+      "title": "Norte da Ilha",
+      "text": "Ingleses fica no norte de Florianópolis, uma base para conhecer também outras praias da região.",
+      "icon": "map-pin"
+    }
+  ],
+  "gallery": [],
+  "practical": {
+    "maxGuests": null,
+    "bedrooms": null,
+    "beds": null,
+    "bathrooms": null,
+    "areaM2": null,
+    "checkIn": null,
+    "checkOut": null,
+    "amenities": [],
+    "rules": []
+  },
+  "booking": {
+    "booking": null,
+    "airbnb": null,
+    "decolar": null
+  },
+  "contact": {
+    "instagram": null,
+    "whatsapp": null,
+    "email": null
+  }
+}

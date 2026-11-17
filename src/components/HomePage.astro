@@ -1,0 +1,73 @@
+---
+/**
+ * Composição da página inicial a partir do conteúdo validado.
+ * Usada por pages/index.astro (conteúdo real) e pela prévia de desenvolvimento
+ * (pages/dev/[page].astro, com dados de exemplo rotulados).
+ *
+ * Ordem: hero → apresentação → fotos → diferenciais → informações →
+ * localização → reservas → contato. Seção sem dado confirmado não é renderizada.
+ */
+import Footer from './layout/Footer.astro';
+import Header from './layout/Header.astro';
+import MobileBookingBar from './layout/MobileBookingBar.astro';
+import AboutSection from './sections/AboutSection.astro';
+import BookingSection from './sections/BookingSection.astro';
+import ContactSection from './sections/ContactSection.astro';
+import GallerySection from './sections/GallerySection.astro';
+import Hero from './sections/Hero.astro';
+import HighlightsSection from './sections/HighlightsSection.astro';
+import LocationSection from './sections/LocationSection.astro';
+import PracticalSection from './sections/PracticalSection.astro';
+import PendingContent from './dev/PendingContent.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getBookingPlatforms, getNavItems, getSectionTones, getVisibility, SECTION_IDS } from '../lib/content/derive';
+import { getPendingItems } from '../lib/content/pending';
+import type { Residencial } from '../lib/content/schema';
+
+interface Props {
+  content: Residencial;
+  /** Título da aba (a prévia de dev usa um título próprio). */
+  pageTitle?: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const { content, pageTitle, description, noindex = false } = Astro.props;
+const visible = getVisibility(content);
+const tone = getSectionTones(visible);
+const platforms = getBookingPlatforms(content);
+const nav = getNavItems(visible);
+const { location, hero } = content;
+const locationLabel = `${location.beach} · ${location.city}, ${location.stateCode}`;
+
+const bookingHref = `#${SECTION_IDS.booking}`;
+const heroCta = visible.booking ? { href: bookingHref, label: 'Ver opções de reserva' } : null;
+const heroSecondary = visible.about ? { href: `#${SECTION_IDS.about}`, label: 'Conhecer o residencial' } : null;
+---
+
+<BaseLayout title={pageTitle ?? content.name} description={description} noindex={noindex}>
+  <Header slot="header" name={content.name} nav={nav} cta={visible.booking ? { href: bookingHref, label: 'Reservar' } : null} />
+
+  <Hero
+    name={content.name}
+    locationLabel={locationLabel}
+    title={hero.title}
+    subtitle={hero.subtitle}
+    image={hero.image}
+    cta={heroCta}
+    secondaryCta={heroSecondary}
+  />
+
+  {visible.about && <AboutSection content={content} tone={tone.about} />}
+  {visible.gallery && <GallerySection images={content.gallery} tone={tone.gallery} />}
+  {visible.highlights && <HighlightsSection highlights={content.highlights} tone={tone.highlights} />}
+  {visible.practical && <PracticalSection content={content} tone={tone.practical} />}
+  {visible.location && <LocationSection location={location} tone={tone.location} />}
+  {visible.booking && <BookingSection name={content.name} platforms={platforms} tone={tone.booking} />}
+  {visible.contact && <ContactSection contact={content.contact} tone={tone.contact} />}
+
+  <PendingContent items={getPendingItems(content)} />
+
+  <Footer slot="footer" content={content} nav={nav} platforms={platforms} />
+  {visible.booking && <MobileBookingBar slot="footer" />}
+</BaseLayout>

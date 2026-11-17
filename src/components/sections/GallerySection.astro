@@ -1,0 +1,630 @@
+---
+/**
+ * Galeria: mosaico + lightbox acessível.
+ *
+ * - Ordem narrativa via sortGallery (fachada → social → quartos → externa → detalhes).
+ * - Miniaturas recortadas pelo ponto focal (`focus`); o lightbox mostra a foto inteira.
+ * - AVIF/WebP + fallback, srcset/sizes, width/height reais (sem CLS), lazy-load.
+ * - Sem JS: cada miniatura é um link para a foto ampliada e todas ficam visíveis.
+ * - Com JS: mosaico de até 5 fotos + "Ver todas", lightbox em <dialog> com
+ *   setas/Home/End/Esc, deslizar no toque, contador anunciado e foco devolvido.
+ * - Legenda só aparece quando informada no conteúdo — nada é rotulado automaticamente.
+ */
+import { getImage, Picture } from 'astro:assets';
+import { SECTION_IDS } from '../../lib/content/derive';
+import { MOSAIC_SIZE, sortGallery } from '../../lib/content/gallery';
+import type { Image } from '../../lib/content/schema';
+import { FORMATS, resolveImage, WIDTHS } from '../../lib/images';
+import Icon from '../ui/Icon.astro';
+import Section from '../ui/Section.astro';
+
+interface Props {
+  images: Image[];
+  tone?: 'default' | 'alt';
+}
+
+const { images, tone } = Astro.props;
+const ordered = sortGallery(images);
+const count = ordered.length;
+const layout = Math.min(count, MOSAIC_SIZE);
+
+const items = await Promise.all(
+  ordered.map(async (img) => {
+    const file = resolveImage(img.src);
+    const [avif, webp] = await Promise.all([
+      getImage({ src: file, format: 'avif', widths: [...WIDTHS.lightbox] }),
+      getImage({ src: file, format: 'webp', widths: [...WIDTHS.lightbox] }),
+    ]);
+    return {
+      img,
+      file,
+      large: {
+        avif: avif.srcSet.attribute,
+        webp: webp.srcSet.attribute,
+        fallback: webp.src,
+        width: file.width,
+        height: file.height,
+        alt: img.alt,
+        caption: img.caption,
+      },
+    };
+  }),
+);
+
+const label = (i: number, img: Image) =>
+  `Ampliar foto ${i + 1} de ${count}${img.alt ? `: ${img.alt}` : ''}`;
+---
+
+<Section id={SECTION_IDS.gallery} eyebrow="Galeria" title="Fotos do residencial" width="wide" tone={tone}>
+  <div class="gallery-root" data-gallery>
+    <ul class:list={['gallery', `gallery--n${layout}`]} role="list">
+      {
+        items.map(({ img, file, large }, i) => (
+          <li class:list={['gallery__item', { 'gallery__item--extra': i >= MOSAIC_SIZE }]}>
+            <a
+              class="gallery__link"
+              href={large.fallback}
+              data-index={i}
+              data-avif={large.avif}
+              data-webp={large.webp}
+              data-width={large.width}
+              data-height={large.height}
+              data-alt={large.alt}
+              data-caption={large.caption ?? undefined}
+              aria-label={label(i, img)}
+            >
+              <Picture
+                src={file}
+                alt=""
+                formats={[...FORMATS]}
+                widths={i === 0 ? [...WIDTHS.feature] : [...WIDTHS.thumb]}
+                sizes={
+                  i === 0
+                    ? '(min-width: 1280px) 44rem, (min-width: 768px) 50vw, 100vw'
+                    : '(min-width: 1280px) 22rem, (min-width: 768px) 25vw, 50vw'
+                }
+                loading="lazy"
+                decoding="async"
+                style={`object-position: ${img.focus}`}
+                class="gallery__img"
+              />
+              {img.caption && <span class="gallery__caption">{img.caption}</span>}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      count > MOSAIC_SIZE && (
+        <button type="button" class="gallery__all" data-gallery-all data-start={MOSAIC_SIZE}>
+          <Icon name="image" size={18} />
+          Ver todas as {count} fotos
+        </button>
+      )
+    }
+
+    <dialog class="lightbox" aria-label="Fotos ampliadas" data-lightbox>
+      <div class="lightbox__frame">
+        <figure class="lightbox__figure">
+          <div class="lightbox__stage" data-stage></div>
+          <figcaption class="lightbox__caption">
+            <span class="lightbox__counter" data-counter aria-live="polite"></span>
+            <span data-lb-caption></span>
+          </figcaption>
+        </figure>
+        <button type="button" class="lightbox__btn lightbox__close" data-close>
+          <Icon name="close" size={24} />
+          <span class="visually-hidden">Fechar</span>
+        </button>
+        {
+          count > 1 && (
+            <>
+              <button type="button" class="lightbox__btn lightbox__prev" data-prev>
+                <Icon name="chevron-left" size={28} />
+                <span class="visually-hidden">Foto anterior</span>
+              </button>
+              <button type="button" class="lightbox__btn lightbox__next" data-next>
+                <Icon name="chevron-right" size={28} />
+                <span class="visually-hidden">Próxima foto</span>
+              </button>
+            </>
+          )
+        }
+      </div>
+    </dialog>
+  </div>
+</Section>
+
+<script>
+  interface Slide {
+    avif: string;
+    webp: string;
+    fallback: string;
+    width: number;
+    height: number;
+    alt: string;
+    caption: string | null;
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-gallery]')) {
+    const dialog = root.querySelector<HTMLDialogElement>('[data-lightbox]');
+    const stage = root.querySelector<HTMLElement>('[data-stage]');
+    const counter = root.querySelector<HTMLElement>('[data-counter]');
+    const caption = root.querySelector<HTMLElement>('[data-lb-caption]');
+    if (!dialog || !stage || !counter || !caption || typeof dialog.showModal !== 'function') continue;
+
+    // Dados de cada foto vêm de atributos data-* dos links (sem JSON/HTML injetado).
+    const links = [...root.querySelectorAll<HTMLAnchorElement>('a[data-index]')];
+    const slides: Slide[] = links.map((a) => ({
+      avif: a.dataset.avif ?? '',
+      webp: a.dataset.webp ?? '',
+      fallback: a.href,
+      width: Number(a.dataset.width),
+      height: Number(a.dataset.height),
+      alt: a.dataset.alt ?? '',
+      caption: a.dataset.caption ?? null,
+    }));
+    let current = 0;
+    let opener: HTMLElement | null = null;
+
+    const all = root.querySelector<HTMLButtonElement>('[data-gallery-all]');
+
+    const picture = (s: Slide, eager: boolean) => {
+      const pic = document.createElement('picture');
+      for (const [type, srcset] of [
+        ['image/avif', s.avif],
+        ['image/webp', s.webp],
+      ] as const) {
+        const source = document.createElement('source');
+        source.type = type;
+        source.srcset = srcset;
+        source.sizes = '100vw';
+        pic.append(source);
+      }
+      const img = document.createElement('img');
+      img.src = s.fallback;
+      img.alt = s.alt;
+      img.width = s.width;
+      img.height = s.height;
+      img.decoding = 'async';
+      img.loading = eager ? 'eager' : 'lazy';
+      pic.append(img);
+      return pic;
+    };
+
+    const preload = (i: number) => {
+      const s = slides[(i + slides.length) % slides.length];
+      if (s) picture(s, true); // cria e descarta: o navegador busca e mantém em cache
+    };
+
+    const show = (i: number) => {
+      current = (i + slides.length) % slides.length;
+      const s = slides[current];
+      if (!s) return;
+      const pic = picture(s, true);
+      const img = pic.querySelector('img')!;
+      // Estado de carregamento: indicador até a foto chegar; mensagem se falhar.
+      stage.dataset.state = 'loading';
+      stage.setAttribute('aria-busy', 'true');
+      const done = (state: 'ready' | 'error') => () => {
+        if (!stage.contains(img)) return; // usuário já trocou de foto
+        stage.dataset.state = state;
+        stage.removeAttribute('aria-busy');
+      };
+      img.addEventListener('load', done('ready'), { once: true });
+      img.addEventListener('error', done('error'), { once: true });
+      stage.replaceChildren(pic);
+      if (img.complete && img.naturalWidth > 0) done('ready')();
+      counter.textContent = `Foto ${current + 1} de ${slides.length}`;
+      caption.textContent = s.caption ?? '';
+      if (slides.length > 1) {
+        preload(current + 1);
+        preload(current - 1);
+      }
+    };
+
+    const open = (i: number, from: HTMLElement | null) => {
+      opener = from;
+      show(i);
+      dialog.showModal();
+      document.documentElement.classList.add('is-lightbox-open');
+      dialog.querySelector<HTMLButtonElement>('[data-close]')?.focus();
+    };
+
+    dialog.addEventListener('close', () => {
+      document.documentElement.classList.remove('is-lightbox-open');
+      stage.replaceChildren();
+      opener?.focus();
+    });
+
+    links.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        open(Number(link.dataset.index), link);
+      });
+    });
+    // "Ver todas" começa na primeira foto que não aparece no mosaico.
+    all?.addEventListener('click', () => open(Math.min(Number(all.dataset.start ?? 0), slides.length - 1), all));
+
+    dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-prev]')?.addEventListener('click', () => show(current - 1));
+    dialog.querySelector('[data-next]')?.addEventListener('click', () => show(current + 1));
+
+    // Clique fora da foto (fundo escuro ou área vazia ao redor) fecha.
+    dialog.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target === dialog || target === stage || target.classList.contains('lightbox__frame')) dialog.close();
+    });
+
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') show(current + 1);
+      else if (e.key === 'ArrowLeft') show(current - 1);
+      else if (e.key === 'Home') show(0);
+      else if (e.key === 'End') show(slides.length - 1);
+      else return;
+      e.preventDefault();
+    });
+
+    // Deslizar (toque): horizontal > 50px troca a foto.
+    let startX: number | null = null;
+    stage.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse') startX = e.clientX;
+    });
+    stage.addEventListener('pointerup', (e) => {
+      if (startX === null) return;
+      const dx = e.clientX - startX;
+      startX = null;
+      if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
+    });
+  }
+</script>
+
+<style>
+  /* ── Mosaico ─────────────────────────────────────────────── */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, auto);
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .gallery__item {
+    position: relative;
+    aspect-ratio: var(--ratio-square);
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--sand-200);
+  }
+
+  /* Mobile: 1ª foto larga; se sobrar uma foto ímpar no fim, ela também ocupa a linha. */
+  .gallery__item:first-child,
+  .gallery__item:last-child:nth-child(even) {
+    grid-column: 1 / -1;
+    aspect-ratio: var(--ratio-landscape);
+  }
+
+  /* Com JS, o mosaico mostra só as 5 primeiras; as demais ficam no lightbox.
+     Via (scripting: enabled) o estado final já vale na 1ª pintura — sem salto
+     de layout quando o JS carrega. Sem JS: todas as fotos visíveis. */
+  @media (scripting: enabled) {
+    .gallery__item--extra {
+      display: none;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .gallery {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+
+    .gallery__item,
+    .gallery__item:last-child:nth-child(even) {
+      grid-column: auto;
+      aspect-ratio: var(--ratio-landscape);
+    }
+
+    /* 1 foto: uma faixa larga. */
+    .gallery--n1 .gallery__item:first-child {
+      grid-column: 1 / -1;
+      aspect-ratio: 21 / 9;
+    }
+
+    /* 2 fotos: metades. */
+    .gallery--n2 .gallery__item {
+      grid-column: span 2;
+      aspect-ratio: var(--ratio-landscape);
+    }
+
+    /* 3+ fotos: destaque 2×2 à esquerda. */
+    .gallery--n3 .gallery__item:first-child,
+    .gallery--n4 .gallery__item:first-child,
+    .gallery--n5 .gallery__item:first-child {
+      grid-column: span 2;
+      grid-row: span 2;
+      aspect-ratio: auto;
+    }
+
+    /* 3 fotos: duas largas empilhadas à direita. */
+    .gallery--n3 .gallery__item:not(:first-child) {
+      grid-column: span 2;
+    }
+
+    /* 4 fotos: uma larga em cima, duas embaixo. */
+    .gallery--n4 .gallery__item:nth-child(2) {
+      grid-column: span 2;
+    }
+
+    /* Sem JS e com mais de 5 fotos, as extras seguem em linhas de 4. */
+    .gallery--n5 .gallery__item--extra {
+      aspect-ratio: var(--ratio-landscape);
+    }
+  }
+
+  .gallery__link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: zoom-in;
+  }
+
+  .gallery__link :global(picture),
+  .gallery__link :global(.gallery__img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .gallery__link :global(.gallery__img) {
+    object-fit: cover;
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  .gallery__link:hover :global(.gallery__img) {
+    transform: scale(1.03);
+  }
+
+  .gallery__link:focus-visible {
+    outline-offset: -4px;
+    outline-color: var(--white);
+    box-shadow: inset 0 0 0 4px var(--color-focus);
+  }
+
+  .gallery__caption {
+    position: absolute;
+    inset: auto 0 0;
+    padding: var(--space-6) var(--space-4) var(--space-3);
+    background: linear-gradient(to top, var(--scrim-strong), var(--scrim-soft));
+    color: var(--color-on-image);
+    font-size: var(--text-sm);
+  }
+
+  .gallery__all {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--tap-target);
+    margin-top: var(--space-5);
+    padding: var(--space-3) var(--space-5);
+    border: var(--border-width) solid var(--color-accent);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-accent);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+  }
+
+  .gallery__all:hover {
+    background: var(--color-accent-soft);
+  }
+
+  .gallery__all {
+    display: none;
+  }
+
+  @media (scripting: enabled) {
+    .gallery__all {
+      display: inline-flex;
+    }
+  }
+
+  /* ── Lightbox ────────────────────────────────────────────── */
+  .lightbox {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(var(--black-rgb) / 0.94);
+    color: var(--white);
+  }
+
+  .lightbox::backdrop {
+    background: rgb(var(--black-rgb) / 0.94);
+  }
+
+  :global(html.is-lightbox-open) {
+    overflow: hidden;
+  }
+
+  .lightbox__frame {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: calc(var(--tap-target) + var(--space-4)) var(--space-3) var(--space-4);
+  }
+
+  .lightbox__figure {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+
+  .lightbox__stage {
+    position: relative;
+    display: grid;
+    min-height: 0;
+    touch-action: pan-y;
+  }
+
+  .lightbox__stage :global(picture) {
+    display: contents;
+  }
+
+  /* Foto inteira, sem recorte; a caixa ocupa o palco desde o início (sem salto). */
+  .lightbox__stage :global(img) {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: contain;
+  }
+
+  /* Carregando: indicador discreto no centro. */
+  .lightbox__stage[data-state='loading']::after {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    border: 3px solid rgb(255 255 255 / 0.25);
+    border-top-color: var(--white);
+    border-radius: 50%;
+    animation: lightbox-spin 0.8s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lightbox__stage[data-state='loading']::after {
+      animation: none;
+      border-color: rgb(255 255 255 / 0.6);
+    }
+  }
+
+  @keyframes lightbox-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .lightbox__stage[data-state='loading'] :global(img) {
+    opacity: 0;
+  }
+
+  .lightbox__stage[data-state='error']::after {
+    content: 'Não foi possível carregar esta foto.';
+    position: absolute;
+    inset: 50% 0 auto;
+    text-align: center;
+    font-size: var(--text-sm);
+  }
+
+  .lightbox__stage[data-state='error'] :global(img) {
+    visibility: hidden;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox__stage[data-state='ready'] :global(img) {
+      animation: lightbox-in var(--duration-base) var(--ease-out);
+    }
+  }
+
+  @keyframes lightbox-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .lightbox__caption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-1) var(--space-4);
+    min-height: 1.5em;
+    font-size: var(--text-sm);
+    text-align: center;
+    color: rgb(255 255 255 / 0.85);
+  }
+
+  .lightbox__counter {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lightbox__btn {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: rgb(255 255 255 / 0.12);
+    color: var(--white);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .lightbox__btn:hover {
+    background: rgb(255 255 255 / 0.24);
+  }
+
+  .lightbox__btn:focus-visible {
+    outline-color: var(--color-focus-on-dark);
+  }
+
+  .lightbox__close {
+    top: var(--space-3);
+    right: var(--space-3);
+  }
+
+  .lightbox__prev,
+  .lightbox__next {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .lightbox__prev {
+    left: var(--space-2);
+  }
+
+  .lightbox__next {
+    right: var(--space-2);
+  }
+
+  /* Mobile: setas embaixo, longe da foto e do polegar que desliza. */
+  @media (max-width: 767.98px) {
+    .lightbox__frame {
+      padding-bottom: calc(48px + var(--space-6));
+    }
+    .lightbox__prev,
+    .lightbox__next {
+      top: auto;
+      bottom: var(--space-4);
+      transform: none;
+    }
+    .lightbox__prev {
+      left: calc(50% - 56px);
+    }
+    .lightbox__next {
+      right: calc(50% - 56px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery__link:hover :global(.gallery__img) {
+      transform: none;
+    }
+  }
+</style>

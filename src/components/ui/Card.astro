@@ -1,0 +1,101 @@
+---
+/**
+ * Card de conteúdo (diferenciais, informações práticas, plataformas de reserva).
+ * `interactive` adiciona elevação no hover — use só quando o card inteiro é clicável.
+ */
+import Icon, { type IconName } from './Icon.astro';
+
+interface Props {
+  as?: 'article' | 'div' | 'li';
+  title?: string;
+  headingLevel?: 3 | 4;
+  icon?: IconName;
+  tone?: 'surface' | 'outline';
+  interactive?: boolean;
+  class?: string;
+}
+
+const {
+  as: Tag = 'div',
+  title,
+  headingLevel = 3,
+  icon,
+  tone = 'surface',
+  interactive = false,
+  class: className,
+} = Astro.props;
+const Heading = `h${headingLevel}` as 'h3' | 'h4';
+---
+
+<Tag class:list={['card', `card--${tone}`, { 'card--interactive': interactive }, className]}>
+  {
+    icon && (
+      <span class="card__icon">
+        <Icon name={icon} size={22} />
+      </span>
+    )
+  }
+  {title && <Heading class="card__title">{title}</Heading>}
+  <div class="card__body">
+    <slot />
+  </div>
+</Tag>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-5);
+    border-radius: var(--radius-lg);
+    color: var(--color-text);
+  }
+
+  .card--surface {
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card--outline {
+    background: transparent;
+    border: var(--border-width) solid var(--color-border);
+  }
+
+  .card--interactive {
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out);
+  }
+
+  .card--interactive:hover,
+  .card--interactive:focus-within {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  .card__title {
+    margin: 0;
+  }
+
+  .card__body {
+    color: var(--color-text-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card--interactive:hover,
+    .card--interactive:focus-within {
+      transform: none;
+    }
+  }
+</style>

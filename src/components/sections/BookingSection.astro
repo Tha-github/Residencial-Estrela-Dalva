@@ -1,0 +1,98 @@
+---
+/**
+ * Reservas: links externos individuais para as plataformas.
+ * Sem disponibilidade, preço, calendário ou checkout — a reserva é concluída
+ * inteiramente na plataforma escolhida.
+ */
+import type { BookingPlatform } from '../../lib/content/derive';
+import { SECTION_IDS } from '../../lib/content/derive';
+import Button from '../ui/Button.astro';
+import Section from '../ui/Section.astro';
+
+interface Props {
+  name: string;
+  platforms: BookingPlatform[];
+  tone?: 'default' | 'alt';
+}
+
+const { name, platforms, tone } = Astro.props;
+const many = platforms.length > 1;
+---
+
+<Section
+  id={SECTION_IDS.booking}
+  tone={tone}
+  eyebrow="Reservas"
+  title={many ? 'Reserve pela plataforma de sua preferência' : `Reserve ${platforms[0]?.byName}`}
+  intro="Você será direcionado ao anúncio oficial do residencial. Datas disponíveis, valores, condições e pagamento são consultados e confirmados diretamente na plataforma."
+>
+  <ul class="platforms" role="list">
+    {
+      platforms.map((pl) => (
+        <li class="platform">
+          <h3 class="platform__name">{pl.name}</h3>
+          <p class="platform__text">
+            Anúncio oficial do {name} {pl.inName}.
+          </p>
+          <Button href={pl.url} external class="platform__cta">
+            Reservar {pl.inName}
+          </Button>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="disclaimer">
+    Este site não realiza reservas nem recebe pagamentos. A reserva é concluída na plataforma escolhida, de acordo com as
+    regras dela.
+  </p>
+</Section>
+
+<style>
+  .platforms {
+    display: grid;
+    gap: var(--grid-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 768px) {
+    .platforms {
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    }
+  }
+
+  .platform {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-5);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  .platform__name {
+    margin: 0;
+    font-family: var(--font-display-stack);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-heading);
+  }
+
+  .platform__text {
+    color: var(--color-text-muted);
+  }
+
+  .platform :global(.platform__cta) {
+    margin-top: auto;
+    align-self: flex-start;
+  }
+
+  .disclaimer {
+    max-width: var(--width-prose);
+    margin-top: var(--space-6);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+</style>

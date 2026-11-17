@@ -1,0 +1,158 @@
+---
+/** Comodidades e informações práticas — cada bloco só aparece com dado confirmado. */
+import { getKeyFacts, SECTION_IDS } from '../../lib/content/derive';
+import type { Residencial } from '../../lib/content/schema';
+import Icon from '../ui/Icon.astro';
+import Section from '../ui/Section.astro';
+
+interface Props {
+  content: Residencial;
+  tone?: 'default' | 'alt';
+}
+
+const { content, tone } = Astro.props;
+const p = content.practical;
+const facts = getKeyFacts(content);
+const hasSchedule = p.checkIn !== null || p.checkOut !== null;
+---
+
+<Section id={SECTION_IDS.practical} eyebrow="Antes de reservar" title="Comodidades e informações" tone={tone}>
+  <div class="practical">
+    {
+      (facts.length > 0 || hasSchedule) && (
+        <div class="block">
+          <h3>O imóvel</h3>
+          <dl class="specs">
+            {facts.map((f) => (
+              <div>
+                <dt>{f.label.replace(/^de /, '')}</dt>
+                <dd>{f.value}</dd>
+              </div>
+            ))}
+            {p.checkIn && (
+              <div>
+                <dt>Check-in</dt>
+                <dd>a partir das {p.checkIn}</dd>
+              </div>
+            )}
+            {p.checkOut && (
+              <div>
+                <dt>Check-out</dt>
+                <dd>até as {p.checkOut}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )
+    }
+
+    {
+      p.amenities.length > 0 && (
+        <div class="block">
+          <h3>Comodidades</h3>
+          <ul class="checklist" role="list">
+            {p.amenities.map((a) => (
+              <li>
+                <Icon name="check" size={18} />
+                {a}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      p.rules.length > 0 && (
+        <div class="block">
+          <h3>Regras da casa</h3>
+          <ul class="rules">
+            {p.rules.map((r) => (
+              <li>{r}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+  <p class="note">
+    Condições de cancelamento, valores e políticas da reserva aparecem na plataforma escolhida no momento da reserva.
+  </p>
+</Section>
+
+<style>
+  .practical {
+    display: grid;
+    gap: var(--space-7) var(--grid-gap);
+  }
+
+  @media (min-width: 1024px) {
+    .practical {
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    }
+  }
+
+  .block h3 {
+    padding-bottom: var(--space-3);
+    border-bottom: var(--border-width) solid var(--color-border-strong);
+  }
+
+  .specs {
+    margin: 0;
+  }
+
+  .specs div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-block: var(--space-3);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .specs dt {
+    color: var(--color-text-muted);
+  }
+
+  .specs dt::first-letter {
+    text-transform: uppercase;
+  }
+
+  .specs dd {
+    margin: 0;
+    font-weight: var(--font-weight-medium);
+    text-align: right;
+  }
+
+  .checklist {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .checklist li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+
+  .checklist :global(.icon) {
+    margin-top: 0.2em;
+    color: var(--color-accent);
+  }
+
+  .rules {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-left: var(--space-5);
+  }
+
+  .note {
+    max-width: var(--width-prose);
+    margin-top: var(--space-7);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+</style>

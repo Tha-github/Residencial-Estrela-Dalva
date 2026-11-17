@@ -1,0 +1,249 @@
+---
+/**
+ * Hero fotográfico.
+ * - Com foto real: imagem em tela cheia com véu escuro na base (texto sempre legível).
+ * - Sem foto, em produção: fundo de cor da marca (mar profundo + brilho do amanhecer).
+ *   Nunca uma foto genérica no lugar da real.
+ * - Sem foto, em desenvolvimento: o mesmo fundo + placeholder rotulado.
+ * Textos opcionais (title/subtitle) só aparecem quando confirmados no conteúdo.
+ */
+import { Picture } from 'astro:assets';
+import DevPlaceholder from '../dev/DevPlaceholder.astro';
+import type { Image } from '../../lib/content/schema';
+import { FORMATS, resolveImage, WIDTHS } from '../../lib/images';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  name: string;
+  locationLabel: string;
+  title?: string | null;
+  subtitle?: string | null;
+  image?: Image | null;
+  cta?: { href: string; label: string } | null;
+  secondaryCta?: { href: string; label: string } | null;
+}
+
+const { name, locationLabel, title, subtitle, image, cta, secondaryCta } = Astro.props;
+const heroFile = image ? resolveImage(image.src) : null;
+---
+
+<section class:list={['hero', { 'hero--photo': image, 'hero--brand': !image }]} aria-labelledby="hero-titulo">
+  <div class="hero__media">
+    {
+      image && heroFile ? (
+        // Imagem LCP: sem lazy-load, prioridade alta, sem decodificação assíncrona.
+        <Picture
+          src={heroFile}
+          alt={image.alt}
+          formats={[...FORMATS]}
+          widths={[...WIDTHS.hero]}
+          sizes="100vw"
+          loading="eager"
+          fetchpriority="high"
+          decoding="sync"
+          style={`object-position: ${image.focus}`}
+          class="hero__img"
+        />
+      ) : (
+        <DevPlaceholder field="hero.image" label="Foto real do hero" />
+      )
+    }
+  </div>
+
+  <!-- Faixa do véu: acompanha a altura do texto, então o texto fica sempre sobre o véu forte. -->
+  <div class="hero__band">
+  <div class="hero__content container">
+    <p class="hero__location">
+      <Icon name="map-pin" size={16} />
+      {locationLabel}
+    </p>
+    <h1 id="hero-titulo" class="hero__name">
+      <span class="hero__kicker">Residencial</span>
+      {name.replace(/^Residencial\s+/i, '')}
+    </h1>
+    {title && <p class="hero__title">{title}</p>}
+    {subtitle && <p class="hero__subtitle">{subtitle}</p>}
+    {
+      (cta || secondaryCta) && (
+        <div class="hero__actions">
+          {cta && (
+            <Button href={cta.href} variant="on-image" size="lg" icon="arrow-right">
+              {cta.label}
+            </Button>
+          )}
+          {secondaryCta && (
+            <a class="hero__secondary" href={secondaryCta.href}>
+              {secondaryCta.label}
+            </a>
+          )}
+        </div>
+      )
+    }
+  </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-items: end;
+    min-height: min(88svh, 52rem);
+    padding-top: var(--space-9);
+    color: var(--color-on-image);
+    background: var(--sea-900);
+    overflow: hidden;
+    /* Altura do degradê suave acima do texto. */
+    --hero-fade: 8rem;
+  }
+
+  @media (min-width: 1024px) {
+    .hero {
+      min-height: min(92svh, 60rem);
+      --hero-fade: 12rem;
+    }
+  }
+
+  .hero__band {
+    padding-top: var(--hero-fade);
+    padding-bottom: var(--space-8);
+  }
+
+  @media (min-width: 1024px) {
+    .hero__band {
+      padding-bottom: var(--space-9);
+    }
+  }
+
+  /* Véu: transparente no topo da faixa, forte a partir de onde o texto começa
+     (contraste do texto branco testado no pior caso em contrast.test.ts). */
+  .hero--photo .hero__band {
+    background: linear-gradient(
+      to bottom,
+      var(--scrim-soft) 0,
+      var(--scrim-strong) var(--hero-fade),
+      var(--scrim-strong) 100%
+    );
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  .hero__media :global(picture),
+  .hero__media :global(.hero__img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero__media :global(.hero__img) {
+    object-fit: cover;
+  }
+
+  /* Sem foto: mar profundo com o brilho do amanhecer no horizonte. */
+  .hero--brand .hero__media {
+    background:
+      radial-gradient(120% 60% at 85% 0%, rgb(178 122 69 / 0.38), transparent 60%),
+      radial-gradient(90% 50% at 10% 100%, rgb(29 83 99 / 0.7), transparent 70%),
+      var(--sea-900);
+  }
+
+  .hero__content {
+    position: relative;
+  }
+
+  .hero__location {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.04em;
+  }
+
+  .hero__name {
+    margin: 0;
+    max-width: 12ch;
+    color: inherit;
+    font-size: var(--text-display);
+    line-height: 0.98;
+  }
+
+  .hero__kicker {
+    display: block;
+    margin-bottom: var(--space-3);
+    font-family: var(--font-sans-stack);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+  }
+
+  .hero__title {
+    max-width: 30ch;
+    margin: var(--space-5) 0 0;
+    font-family: var(--font-display-stack);
+    font-size: var(--text-xl);
+    font-style: italic;
+    line-height: var(--line-height-snug);
+  }
+
+  .hero__subtitle {
+    max-width: 46ch;
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-base);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+    margin-top: var(--space-6);
+  }
+
+  .hero__secondary {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-target);
+    color: inherit;
+    font-weight: var(--font-weight-medium);
+  }
+
+  .hero__secondary:hover {
+    color: inherit;
+  }
+
+  .hero :focus-visible {
+    outline-color: var(--color-focus-on-dark);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__content > * {
+      animation: hero-in var(--duration-slow) var(--ease-out) both;
+    }
+    .hero__content > :nth-child(2) {
+      animation-delay: 80ms;
+    }
+    .hero__content > :nth-child(n + 3) {
+      animation-delay: 160ms;
+    }
+  }
+
+  @keyframes hero-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

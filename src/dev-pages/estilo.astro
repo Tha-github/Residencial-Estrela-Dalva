@@ -1,0 +1,271 @@
+---
+/**
+ * Guia de estilo — SOMENTE em desenvolvimento (http://localhost:4321/dev/estilo).
+ * Rota injetada apenas em `astro dev` (ver devOnlyRoutes em astro.config.mjs).
+ * Todo texto aqui é exemplo de interface marcado como tal; não é conteúdo do imóvel.
+ */
+import tokensCss from '../styles/tokens.css?raw';
+import Header from '../components/layout/Header.astro';
+import Hero from '../components/sections/Hero.astro';
+import Button from '../components/ui/Button.astro';
+import Card from '../components/ui/Card.astro';
+import Icon, { type IconName } from '../components/ui/Icon.astro';
+import Section from '../components/ui/Section.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { contrastRatio, hexToRgb, parseCssTokens, resolveHex } from '../lib/color';
+import { getContent } from '../lib/content/load';
+import { contrastPairs } from '../styles/contrast-pairs';
+
+const content = getContent();
+const tokens = parseCssTokens(tokensCss);
+const palette = [
+  '--sand-50', '--sand-100', '--sand-200', '--sand-400',
+  '--sea-100', '--sea-700', '--sea-800', '--sea-900',
+  '--graphite-500', '--graphite-700', '--graphite-900', '--dawn-500',
+].map((name) => ({ name, hex: resolveHex(name, tokens) }));
+
+const pairs = contrastPairs.map((p) => {
+  const fg = resolveHex(p.fg, tokens);
+  const bg = resolveHex(p.bg, tokens);
+  const ratio = contrastRatio(hexToRgb(fg), hexToRgb(bg));
+  return { ...p, fgHex: fg, bgHex: bg, ratio, ok: ratio >= p.min };
+});
+
+const scale = [
+  ['--text-display', 'Display'], ['--text-3xl', '3XL · H1'], ['--text-2xl', '2XL · H2'],
+  ['--text-xl', 'XL'], ['--text-lg', 'LG · H3 / lead'], ['--text-base', 'Base · corpo'],
+  ['--text-sm', 'SM'], ['--text-xs', 'XS · eyebrow'],
+] as const;
+
+const icons: IconName[] = [
+  'star', 'arrow-right', 'arrow-up-right', 'chevron-left', 'chevron-right', 'close', 'menu',
+  'map-pin', 'waves', 'message', 'mail', 'instagram', 'image', 'check',
+];
+const demoNav = [
+  { href: '#tipografia', label: 'Tipografia' },
+  { href: '#componentes', label: 'Componentes' },
+  { href: '#hero', label: 'Hero' },
+];
+---
+
+<BaseLayout title="Guia de estilo (dev)" noindex>
+  <Header slot="header" name={content.name} nav={demoNav} cta={{ href: '#componentes', label: 'Reservar' }} />
+
+  <div class="dev-banner container">
+    <strong>Guia de estilo · apenas desenvolvimento.</strong> Textos marcados <em>[exemplo]</em> são de demonstração e
+    não são conteúdo do imóvel. Esta rota não existe no build.
+  </div>
+
+  <Section id="paleta" eyebrow="Fundamentos" title="Paleta: areia, mar, grafite e aurora">
+    <ul class="swatches">
+      {
+        palette.map(({ name, hex }) => (
+          <li class="swatch">
+            <span class="swatch__chip" style={`background:${hex}`} />
+            <code>{name}</code>
+            <span>{hex}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <h3 class="sg-h3">Contraste dos pares em uso (WCAG 2.2 AA)</h3>
+    <div class="table-wrap">
+      <table class="contrast">
+        <thead>
+          <tr><th>Amostra</th><th>Uso</th><th>Razão</th><th>Mínimo</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {
+            pairs.map((p) => (
+              <tr>
+                <td>
+                  <span class="sample" style={`color:${p.fgHex};background:${p.bgHex}`}>Aa</span>
+                </td>
+                <td>{p.usage}<br /><code>{p.fg} / {p.bg}</code></td>
+                <td>{p.ratio.toFixed(2)}:1</td>
+                <td>{p.min}:1</td>
+                <td>{p.ok ? 'OK' : 'Decorativo (não usar em texto)'}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </Section>
+
+  <Section id="tipografia" eyebrow="Fundamentos" title="Tipografia" tone="alt">
+    <p class="lead prose">
+      Instrument Serif (títulos, um peso + itálico) e Figtree (texto, 400–600). [exemplo]
+    </p>
+    <ul class="scale">
+      {
+        scale.map(([token, label]) => (
+          <li>
+            <span class="scale__label">{label}<code>{token}</code></span>
+            <span class:list={['scale__sample', { serif: token.includes('display') || token.includes('3xl') || token.includes('2xl') }]} style={`font-size:var(${token})`}>
+              Amanhecer em Ingleses
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="prose">
+      <h2>Título de seção com <em>itálico</em> [exemplo]</h2>
+      <h3>Subtítulo de card [exemplo]</h3>
+      <p>
+        Parágrafo de demonstração com <a href="#tipografia">link de texto</a> para verificar medida de linha, ritmo e
+        sublinhado. [exemplo]
+      </p>
+    </div>
+  </Section>
+
+  <Section id="componentes" eyebrow="Componentes" title="Botões, links, cards e ícones">
+    <div class="row">
+      <Button href="#componentes">Primário</Button>
+      <Button href="#componentes" variant="secondary">Secundário</Button>
+      <Button href="#componentes" variant="quiet" icon="arrow-right">Discreto</Button>
+      <Button href="https://example.com" external variant="secondary">Link externo</Button>
+      <Button href="#componentes" size="lg" icon="arrow-right">Grande</Button>
+    </div>
+    <div class="grid cards">
+      <Card title="Card de superfície [exemplo]" icon="waves">
+        <p>Texto curto de demonstração. [exemplo]</p>
+      </Card>
+      <Card title="Card com contorno [exemplo]" icon="map-pin" tone="outline">
+        <p>Texto curto de demonstração. [exemplo]</p>
+      </Card>
+      <Card title="Card interativo [exemplo]" icon="arrow-up-right" interactive>
+        <p><a href="#componentes">Link dentro do card [exemplo]</a></p>
+      </Card>
+    </div>
+    <ul class="icons">
+      {
+        icons.map((name) => (
+          <li>
+            <Icon name={name} size={24} />
+            <code>{name}</code>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <div id="hero">
+    <Hero
+      name={content.name}
+      locationLabel={`${content.location.beach} · ${content.location.city}, ${content.location.stateCode}`}
+      title="Frase curta do hero [exemplo]"
+      cta={{ href: '#hero', label: 'Ver opções de reserva' }}
+      secondaryCta={{ href: '#hero', label: 'Conhecer o residencial' }}
+    />
+  </div>
+</BaseLayout>
+
+<style>
+  .dev-banner {
+    margin-block: var(--space-5) 0;
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-dev-notice-bg);
+    border: var(--border-width) dashed var(--color-dev-notice-border);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+  }
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    gap: var(--space-4);
+    margin: 0 0 var(--space-7);
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+  .swatch {
+    display: grid;
+    gap: var(--space-1);
+  }
+  .swatch__chip {
+    height: 4.5rem;
+    border-radius: var(--radius-md);
+    border: var(--border-width) solid var(--color-border);
+  }
+  .sg-h3 {
+    margin-top: var(--space-6);
+  }
+  .table-wrap {
+    overflow-x: auto;
+  }
+  .contrast {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+  .contrast th,
+  .contrast td {
+    padding: var(--space-3);
+    border-bottom: var(--border-width) solid var(--color-border);
+    text-align: left;
+    vertical-align: middle;
+  }
+  .sample {
+    display: inline-grid;
+    place-items: center;
+    width: 3rem;
+    height: 2.25rem;
+    border-radius: var(--radius-sm);
+    border: var(--border-width) solid var(--color-border);
+    font-weight: var(--font-weight-bold);
+  }
+  .scale {
+    margin: var(--space-6) 0;
+    padding: 0;
+    list-style: none;
+  }
+  .scale li {
+    display: grid;
+    gap: var(--space-1);
+    padding-block: var(--space-3);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+  .scale__label {
+    display: flex;
+    gap: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+  .scale__sample {
+    line-height: 1.15;
+    color: var(--color-heading);
+  }
+  .scale__sample.serif {
+    font-family: var(--font-display-stack);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
+  }
+  .cards {
+    margin-bottom: var(--space-7);
+  }
+  .cards > :global(*) {
+    grid-column: span 4;
+  }
+  .icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+  .icons li {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+    color: var(--color-heading);
+  }
+</style>

@@ -1,0 +1,115 @@
+---
+/** Contato e Instagram — somente canais fornecidos pelo cliente. */
+import { formatWhatsapp, instagramHandle, SECTION_IDS, whatsappUrl } from '../../lib/content/derive';
+import type { Residencial } from '../../lib/content/schema';
+import Icon from '../ui/Icon.astro';
+import Section from '../ui/Section.astro';
+
+interface Props {
+  contact: Residencial['contact'];
+  tone?: 'default' | 'alt';
+}
+
+const { contact, tone } = Astro.props;
+---
+
+<Section
+  id={SECTION_IDS.contact}
+  eyebrow="Contato"
+  title="Fale com o residencial"
+  intro="Para dúvidas sobre a hospedagem. Reservas são feitas pelas plataformas indicadas acima."
+  tone={tone}
+>
+  <ul class="channels" role="list">
+    {
+      contact.whatsapp && (
+        <li>
+          <a class="channel" href={whatsappUrl(contact.whatsapp)} target="_blank" rel="noopener noreferrer">
+            <Icon name="message" size={24} />
+            <span>
+              <span class="channel__label">WhatsApp</span>
+              <span class="channel__value">{formatWhatsapp(contact.whatsapp)}</span>
+            </span>
+            <span class="visually-hidden">(abre em nova aba)</span>
+          </a>
+        </li>
+      )
+    }
+    {
+      contact.instagram && (
+        <li>
+          <a class="channel" href={contact.instagram} target="_blank" rel="noopener noreferrer">
+            <Icon name="instagram" size={24} />
+            <span>
+              <span class="channel__label">Instagram</span>
+              <span class="channel__value">{instagramHandle(contact.instagram)}</span>
+            </span>
+            <span class="visually-hidden">(abre em nova aba)</span>
+          </a>
+        </li>
+      )
+    }
+    {
+      contact.email && (
+        <li>
+          <a class="channel" href={`mailto:${contact.email}`}>
+            <Icon name="mail" size={24} />
+            <span>
+              <span class="channel__label">E-mail</span>
+              <span class="channel__value">{contact.email}</span>
+            </span>
+          </a>
+        </li>
+      )
+    }
+  </ul>
+</Section>
+
+<style>
+  .channels {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 768px) {
+    .channels {
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    }
+  }
+
+  .channel {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: var(--tap-target);
+    padding: var(--space-5);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: border-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .channel:hover {
+    border-color: var(--color-accent);
+  }
+
+  .channel > span {
+    display: grid;
+    min-width: 0;
+  }
+
+  .channel__label {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .channel__value {
+    font-weight: var(--font-weight-bold);
+    overflow-wrap: anywhere;
+  }
+</style>

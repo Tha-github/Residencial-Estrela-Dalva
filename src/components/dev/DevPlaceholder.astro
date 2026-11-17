@@ -1,0 +1,35 @@
+---
+/**
+ * Marcador visual de foto pendente — SOMENTE em desenvolvimento.
+ * Não é uma imagem: listras + rótulo explícito. Em build não renderiza nada.
+ */
+interface Props {
+  field: string;
+  label?: string;
+}
+
+const { field, label = 'Foto real pendente' } = Astro.props;
+
+// CSS estático, emitido apenas junto com o placeholder (não vaza para o build).
+const css = `
+  .dev-placeholder { position:absolute; inset:0; display:grid; place-items:start center; padding:1.5rem 1rem;
+    background: repeating-linear-gradient(135deg, rgb(255 255 255 / .07) 0 14px, transparent 14px 28px); }
+  .dev-placeholder__tag { max-width:22rem; padding:.5rem .875rem; border:1px dashed #ffd36b; border-radius:6px;
+    background:rgb(0 0 0 / .6); color:#ffd36b; font:600 .75rem/1.5 ui-monospace,monospace;
+    letter-spacing:.06em; text-transform:uppercase; text-align:center; }
+  .dev-placeholder__tag code { text-transform:none; }
+`;
+---
+
+{
+  import.meta.env.DEV && (
+    <div class="dev-placeholder" role="note" aria-label={`Placeholder de desenvolvimento: ${label}`}>
+      <style is:inline set:text={css} />
+      <span class="dev-placeholder__tag">
+        Placeholder · {label}
+        <br />
+        <code>{field}</code> · só em desenvolvimento
+      </span>
+    </div>
+  )
+}

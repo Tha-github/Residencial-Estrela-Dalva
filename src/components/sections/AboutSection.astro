@@ -1,0 +1,96 @@
+---
+/** Apresentação do residencial: título, parágrafos e fatos numéricos confirmados. */
+import { getKeyFacts, SECTION_IDS } from '../../lib/content/derive';
+import type { Residencial } from '../../lib/content/schema';
+import Section from '../ui/Section.astro';
+
+interface Props {
+  content: Residencial;
+  tone?: 'default' | 'alt';
+}
+
+const { content, tone } = Astro.props;
+const facts = getKeyFacts(content);
+---
+
+<Section
+  id={SECTION_IDS.about}
+  eyebrow={content.location.beach}
+  title={content.about.title ?? 'O residencial'}
+  tone={tone}
+>
+  <div class:list={['about', { 'about--with-facts': facts.length > 0 }]}>
+    <div class="about__text prose">
+      {content.about.paragraphs.map((p) => <p>{p}</p>)}
+    </div>
+    {
+      facts.length > 0 && (
+        <dl class="about__facts" aria-label="Resumo do imóvel">
+          {facts.map((f) => (
+            <div class="fact">
+              <dt class="visually-hidden">{f.label}</dt>
+              <dd>
+                <span class="fact__value">{f.value}</span>
+                <span class="fact__label" aria-hidden="true">
+                  {f.label}
+                </span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+  </div>
+</Section>
+
+<style>
+  .about {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  .about__text {
+    font-size: var(--text-lg);
+  }
+
+  .about__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: var(--space-5);
+    margin: 0;
+    padding-top: var(--space-6);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  .fact dd {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+  }
+
+  .fact__value {
+    font-family: var(--font-display-stack);
+    font-size: var(--text-2xl);
+    line-height: 1;
+    color: var(--color-heading);
+  }
+
+  .fact__label {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  @media (min-width: 1024px) {
+    .about--with-facts {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+      align-items: start;
+    }
+    .about__facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding-top: 0;
+      padding-left: var(--space-6);
+      border-top: 0;
+      border-left: var(--border-width) solid var(--color-border);
+    }
+  }
+</style>

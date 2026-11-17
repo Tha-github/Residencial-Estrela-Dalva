@@ -1,0 +1,19 @@
+---
+/**
+ * Prévia com TODAS as seções preenchidas por dados de exemplo — SOMENTE em dev.
+ * http://localhost:4321/dev/previa/completa
+ * Rota injetada apenas em `astro dev` (ver devOnlyRoutes em astro.config.mjs):
+ * não faz parte do build, nem as imagens de exemplo que ela usa.
+ */
+import HomePage from '../components/HomePage.astro';
+import { devFixture } from '../data/dev-fixture';
+import { parseContent } from '../lib/content/load';
+import { registerDevImages } from '../lib/dev-images';
+
+registerDevImages();
+
+// Passa pelo mesmo esquema do conteúdo real: garante que o layout aceita dados válidos.
+const content = parseContent(devFixture);
+---
+
+<HomePage content={content} pageTitle="Prévia completa (dados de exemplo) · dev" noindex />

@@ -1,0 +1,44 @@
+---
+/**
+ * Painel de pendências de conteúdo — SOMENTE em desenvolvimento.
+ * Em build (preview/produção) import.meta.env.DEV = false: nem o HTML nem o
+ * CSS deste componente são emitidos.
+ */
+import type { PendingItem } from '../../lib/content/pending';
+
+interface Props {
+  items: PendingItem[];
+}
+
+const { items } = Astro.props;
+const show = import.meta.env.DEV && items.length > 0;
+
+// CSS estático (sem dados do usuário), emitido só junto com o aviso.
+const css = `
+  .dev-pending { margin-block: var(--space-6); padding: var(--space-4) var(--space-5);
+    background: var(--color-dev-notice-bg); border: var(--border-width) dashed var(--color-dev-notice-border);
+    border-radius: var(--radius-md); font-size: var(--text-sm); }
+  .dev-pending ul { margin: 0; padding-left: var(--space-5); }
+  .dev-pending__tag { margin-left: var(--space-2); color: var(--color-danger); font-weight: var(--font-weight-medium); }
+`;
+---
+
+{
+  show && (
+    <aside class="dev-pending container" aria-label="Pendências de conteúdo (apenas desenvolvimento)">
+      <style is:inline set:text={css} />
+      <p class="dev-pending__title">
+        <strong>Desenvolvimento:</strong> {items.length} informação(ões) aguardando o cliente. Este aviso não
+        aparece no site publicado.
+      </p>
+      <ul>
+        {items.map((item) => (
+          <li>
+            {item.label} <code>{item.field}</code>
+            {item.requiredForLaunch && <span class="dev-pending__tag">obrigatório p/ lançamento</span>}
+          </li>
+        ))}
+      </ul>
+    </aside>
+  )
+}

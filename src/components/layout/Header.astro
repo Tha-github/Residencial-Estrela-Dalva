@@ -1,0 +1,243 @@
+---
+/**
+ * Cabeçalho fixo: marca, navegação curta e CTA de reserva.
+ * Sem JS: no mobile a navegação aparece como linha rolável abaixo da marca.
+ * Com JS: vira menu recolhível (botão com aria-expanded, Esc fecha).
+ */
+import type { NavItem } from '../../lib/content/derive';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  name: string;
+  nav?: NavItem[];
+  cta?: NavItem | null;
+}
+
+const { name, nav = [], cta } = Astro.props;
+const shortName = name.replace(/^Residencial\s+/i, '');
+---
+
+<header class="site-header" data-header>
+  <div class="site-header__bar container container--wide">
+    <a class="brand" href="/" aria-label={`${name}, página inicial`}>
+      <Icon name="star" size={14} class="brand__star" />
+      <span class="brand__text">
+        <span class="brand__kicker">Residencial</span>
+        <span class="brand__name">{shortName}</span>
+      </span>
+    </a>
+
+    {
+      nav.length > 0 && (
+        <button
+          class="site-header__toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          data-nav-toggle
+        >
+          <Icon name="menu" size={22} class="toggle-open" />
+          <Icon name="close" size={22} class="toggle-close" />
+          <span class="visually-hidden">Menu</span>
+        </button>
+      )
+    }
+
+    {
+      nav.length > 0 && (
+        <nav id="site-nav" class="site-nav" aria-label="Principal">
+          <ul>
+            {nav.map((item) => (
+              <li>
+                <a href={item.href}>{item.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+
+    {
+      cta && (
+        <Button href={cta.href} class="site-header__cta">
+          {cta.label}
+        </Button>
+      )
+    }
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const toggle = header?.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  if (header && toggle) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      header.toggleAttribute('data-open', open);
+    };
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    header.querySelectorAll('.site-nav a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && header.hasAttribute('data-open')) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(251 248 242 / 0.9);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .site-header__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+    min-height: var(--header-height);
+    padding-block: var(--space-2);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--tap-target);
+    margin-right: auto;
+    color: var(--color-heading);
+    text-decoration: none;
+  }
+
+  .brand :global(.brand__star) {
+    color: var(--color-highlight);
+  }
+
+  .brand__text {
+    display: grid;
+    line-height: 1;
+  }
+
+  .brand__kicker {
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .brand__name {
+    font-family: var(--font-display-stack);
+    font-size: 1.5rem;
+    letter-spacing: var(--tracking-display);
+  }
+
+  .site-nav ul {
+    display: flex;
+    gap: var(--space-1) var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-target);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    text-decoration: none;
+  }
+
+  .site-nav a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+
+  /* Mobile sem JS: navegação em linha rolável abaixo da marca. */
+  @media (max-width: 1023.98px) {
+    .site-nav {
+      order: 3;
+      flex-basis: 100%;
+      overflow-x: auto;
+    }
+    .site-nav ul {
+      white-space: nowrap;
+    }
+
+  }
+
+  /* Com JS: menu recolhível. (scripting: enabled) aplica o estado já na 1ª
+     pintura — sem salto de layout quando o script carrega. */
+  @media (max-width: 1023.98px) and (scripting: enabled) {
+    .site-nav {
+      display: none;
+    }
+    .site-header[data-open] .site-nav {
+      display: block;
+      padding-bottom: var(--space-4);
+    }
+    .site-nav ul {
+      flex-direction: column;
+      white-space: normal;
+    }
+    .site-nav a {
+      font-size: var(--text-lg);
+    }
+  }
+
+  /* Botão do menu: só existe com JS, e só no mobile. */
+  .site-header__toggle {
+    display: none;
+  }
+
+  @media (max-width: 1023.98px) and (scripting: enabled) {
+    .site-header__toggle {
+      display: inline-grid;
+    }
+  }
+
+  .site-header__toggle {
+    place-items: center;
+    order: 2;
+    width: var(--tap-target);
+    height: var(--tap-target);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--color-heading);
+    cursor: pointer;
+  }
+
+  .site-header__toggle :global(.toggle-close),
+  .site-header[data-open] .site-header__toggle :global(.toggle-open) {
+    display: none;
+  }
+
+  .site-header[data-open] .site-header__toggle :global(.toggle-close) {
+    display: block;
+  }
+
+  .site-header :global(.site-header__cta) {
+    order: 1;
+    padding: var(--space-2) var(--space-4);
+  }
+
+  @media (min-width: 1024px) {
+    .site-header__toggle {
+      display: none;
+    }
+    .site-header :global(.site-header__cta) {
+      order: 0;
+    }
+  }
+</style>

@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getContent } from '../lib/content/load';
+
+const { name } = getContent();
+---
+
+<BaseLayout title={`Página não encontrada · ${name}`} noindex>
+  <section class="not-found container">
+    <h1>Página não encontrada</h1>
+    <p>O endereço acessado não existe ou foi alterado.</p>
+    <p><a href="/">Voltar para a página inicial do {name}</a></p>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    padding-block: var(--section-gap);
+  }
+</style>
