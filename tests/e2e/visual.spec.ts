@@ -59,6 +59,24 @@ test('alvos de toque dos controles têm ≥ 44px de altura', async ({ page }) =>
   expect(small).toEqual([]);
 });
 
+test('cabeçalho fica no topo do documento e não sobrepõe o conteúdo', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const layout = await page.evaluate(() => {
+    const header = document.querySelector<HTMLElement>('[data-header]')!;
+    const hero = document.querySelector<HTMLElement>('.hero')!;
+    return {
+      position: getComputedStyle(header).position,
+      headerTop: header.getBoundingClientRect().top,
+      heroTop: hero.getBoundingClientRect().top,
+      headerBottom: header.getBoundingClientRect().bottom,
+    };
+  });
+  expect(layout.position).toBe('relative');
+  expect(layout.headerTop).toBe(0);
+  expect(layout.heroTop).toBeGreaterThanOrEqual(layout.headerBottom);
+});
+
 test('menu mobile abre, fecha com Esc e devolve o foco', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/dev/estilo');

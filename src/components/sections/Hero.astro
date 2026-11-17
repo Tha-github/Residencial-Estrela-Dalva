@@ -153,6 +153,16 @@ const heroFile = image ? resolveImage(image.src) : null;
       var(--sea-900);
   }
 
+  /* Sem uma foto aprovada, o hero usa uma composição mais curta e equilibrada. */
+  .hero--brand {
+    align-items: center;
+    min-height: min(76svh, 48rem);
+  }
+
+  .hero--brand .hero__band {
+    padding-block: var(--space-8);
+  }
+
   .hero__content {
     position: relative;
   }

@@ -5,6 +5,12 @@
 
 ## Checklist atualizado
 
+### Revisão da captura publicada (17/11/2026)
+
+A captura de página inteira mostrou o cabeçalho sticky sendo pintado sobre a seção de apresentação, enquanto sua posição inicial ficava vazia. O hero sem foto real também ocupava quase toda a altura da tela e deixava o texto concentrado no rodapé. O cabeçalho agora permanece no fluxo da página, e o hero sem foto tem altura reduzida e conteúdo centralizado. A ausência de foto, galeria, links oficiais de reserva e dados operacionais continua pendente de material aprovado pelo cliente; nenhum dado foi inventado para preencher esses espaços.
+
+Validação desta correção: `npm run validate` (lint, typecheck, 64 testes unitários, build e SEO) passou. O teste Playwright específico para a geometria do cabeçalho passou; o processo do Playwright ficou pendurado durante o encerramento do servidor local e foi interrompido depois do resultado aprovado do teste.
+
 | # | Critério | Estado | Evidência/limite |
 |---|---|---|---|
 | 1 | Qualidade visual | **PENDENTE** | O layout Astro é coerente e responsivo; comparação com a prévia original do cliente e avaliação de fotos reais ainda não são possíveis. |

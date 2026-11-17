@@ -1,6 +1,6 @@
 ---
 /**
- * Cabeçalho fixo: marca, navegação curta e CTA de reserva.
+ * Cabeçalho no fluxo da página: marca, navegação curta e CTA de reserva.
  * Sem JS: no mobile a navegação aparece como linha rolável abaixo da marca.
  * Com JS: vira menu recolhível (botão com aria-expanded, Esc fecha).
  */
@@ -90,9 +90,8 @@ const homeUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_UR
 
 <style>
   .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
+    /* Evita sobreposição em capturas de página inteira e mantém as seções livres. */
+    position: relative;
     background: rgb(251 248 242 / 0.9);
     backdrop-filter: saturate(1.4) blur(10px);
     border-bottom: var(--border-width) solid var(--color-border);
