@@ -1,7 +1,7 @@
 # Pendências — informações e fotos do proprietário
 
 Itens necessários para publicar. Nenhum deles será preenchido por suposição.
-Situação em 18/11/2026.
+Situação em 19/11/2026.
 
 Na prévia pública do GitHub Pages, o que falta aparece em quadros tracejados (fotos) ou como "Pendente de configuração" (links das plataformas). Esses marcadores servem apenas para revisão: não são links ativos nem afirmações sobre o imóvel. O site segue `noindex` até a aprovação e o preenchimento dos dados obrigatórios. O build de produção é bloqueado enquanto faltar algum item obrigatório.
 
@@ -17,7 +17,7 @@ Na prévia pública do GitHub Pages, o que falta aparece em quadros tracejados (
 
 ## Obrigatórios para o lançamento
 
-- [ ] **Foto principal do banner**: horizontal, luminosa, de preferência uma vista ampla do loft mostrando o mezanino e os ambientes integrados. Ela é recortada na vertical no celular, então o assunto principal deve ficar no centro ou à direita.
+- [x] **Foto principal do banner**: entregue (`src/assets/fotos/banner.png`, vista de praia com costão). Pendente apenas confirmar se é a Praia dos Ingleses; até lá, o texto alternativo descreve a cena sem nomear o local.
 - [ ] **Fotos reais do loft** (galeria), indicando o que aparece em cada uma:
   - vista geral mostrando os dois níveis
   - ambientes integrados do piso inferior (aparece na seção "O loft")

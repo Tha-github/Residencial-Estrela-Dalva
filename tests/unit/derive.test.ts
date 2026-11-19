@@ -155,14 +155,14 @@ describe('perguntas frequentes', () => {
 });
 
 describe('trava de lançamento', () => {
-  it('bloqueia produção com dados obrigatórios pendentes (fotos e links das plataformas)', () => {
+  it('bloqueia produção com dados obrigatórios pendentes (galeria e links das plataformas)', () => {
     try {
       assertReadyForLaunch(real);
       expect.unreachable();
     } catch (err) {
       expect(err).toBeInstanceOf(LaunchBlockedError);
       const fields = (err as LaunchBlockedError).items.map((i) => i.field);
-      expect(fields).toEqual(['hero.image', 'gallery', 'booking.booking', 'booking.airbnb']);
+      expect(fields).toEqual(['gallery', 'booking.booking', 'booking.airbnb']);
     }
   });
 

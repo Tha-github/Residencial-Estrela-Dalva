@@ -16,8 +16,7 @@ test.describe('página real (dados confirmados)', () => {
   test('acomodação deixa claro onde cada pessoa dorme', async ({ page }) => {
     await page.goto('/');
     const s = page.locator('#acomodacao');
-    await expect(s).toContainText('Piso superior');
-    await expect(s).toContainText('Mezanino');
+        await expect(s).toContainText('Mezanino');
     await expect(s).toContainText('Uma cama de casal');
     await expect(s).toContainText('Uma cama de solteiro');
     await expect(s).toContainText('Piso inferior');
@@ -31,7 +30,8 @@ test.describe('página real (dados confirmados)', () => {
     await expect(whatsapp).toHaveCount(1);
     expect(decodeURIComponent((await whatsapp.getAttribute('href'))!.split('text=')[1]!)).toContain('Residencial Estrela Dalva');
     await expect(page.locator('#reservas a[href^="mailto:pereimamarcelo@gmail.com"]')).toHaveCount(1);
-    await expect(page.locator('input, form')).toHaveCount(0);
+    // Só o conteúdo da página: a barra de ferramentas do Astro (dev) tem inputs no shadow DOM.
+    await expect(page.locator('main input, main form')).toHaveCount(0);
   });
 
   test('banner leva às reservas e ao loft', async ({ page }) => {

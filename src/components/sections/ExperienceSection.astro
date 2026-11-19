@@ -23,6 +23,7 @@ const hasPhoto = Boolean(outdoor || clientPreview);
 ---
 
 <Section
+  align="center"
   id={SECTION_IDS.experience}
   eyebrow="Experiência"
   title={experience.title ?? 'Como é se hospedar aqui'}
@@ -32,14 +33,11 @@ const hasPhoto = Boolean(outdoor || clientPreview);
   <div class:list={['exp', { 'exp--photo': hasPhoto }]}>
     <ol class="day" role="list">
       {
-        experience.moments.map((m, i) => (
+        experience.moments.map((m) => (
           <li class="moment reveal">
             <span class="moment__marker">
               <span class="moment__dot">
                 <Icon name={m.icon} size={22} />
-              </span>
-              <span class="moment__index" aria-hidden="true">
-                {String(i + 1).padStart(2, '0')}
               </span>
             </span>
             <h3 class="moment__title">{m.title}</h3>
@@ -127,13 +125,6 @@ const hasPhoto = Boolean(outdoor || clientPreview);
     border-radius: 50%;
     background: var(--sea-800);
     color: var(--terra-300);
-  }
-
-  .moment__index {
-    font-size: var(--text-xs);
-    font-weight: var(--font-weight-bold);
-    letter-spacing: var(--tracking-eyebrow);
-    color: var(--sea-200);
   }
 
   .moment__title {

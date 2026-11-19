@@ -13,12 +13,10 @@ interface Props {
 
 const { content } = Astro.props;
 const { property, practical: p } = content;
-const sleepingNote = content.sleeping.map((l) => l.detail ?? l.beds.map((b) => b.label.replace(/^Um[a]?\s+/i, '')).join(', ')).join(' + ');
-
-const facts: Array<{ icon: IconName; label: string; value: string; note?: string | null }> = [
-  { icon: 'home', label: property.type, value: property.unit, note: property.reference ? `Identificação ${property.reference}` : null },
+const facts: Array<{ icon: IconName; label: string; value: string }> = [
+  { icon: 'home', label: property.type, value: property.unit },
 ];
-if (p.maxGuests) facts.push({ icon: 'users', label: 'Capacidade', value: `Até ${p.maxGuests} hóspedes`, note: sleepingNote || null });
+if (p.maxGuests) facts.push({ icon: 'users', label: 'Capacidade', value: `Até ${p.maxGuests} hóspedes` });
 if (p.checkIn) facts.push({ icon: 'log-in', label: 'Check-in', value: `A partir das ${formatTime(p.checkIn)}` });
 if (p.checkOut) facts.push({ icon: 'log-out', label: 'Check-out', value: `Até as ${formatTime(p.checkOut)}` });
 ---
@@ -35,7 +33,6 @@ if (p.checkOut) facts.push({ icon: 'log-out', label: 'Check-out', value: `Até a
             <p class="quick__label">{f.label}</p>
             <p class="quick__text">
               <span class="quick__value">{f.value}</span>
-              {f.note && <span class="quick__note">{f.note}</span>}
             </p>
           </div>
         </li>
@@ -139,8 +136,4 @@ if (p.checkOut) facts.push({ icon: 'log-out', label: 'Check-out', value: `Até a
     color: var(--color-heading);
   }
 
-  .quick__note {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-  }
 </style>

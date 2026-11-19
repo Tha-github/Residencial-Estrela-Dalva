@@ -17,6 +17,7 @@ const { amenities, tone } = Astro.props;
 ---
 
 <Section
+  align="center"
   id={SECTION_IDS.amenities}
   eyebrow="Estrutura"
   title="Tudo o que você precisa, *já no loft*"
@@ -93,12 +94,6 @@ const { amenities, tone } = Astro.props;
     .amenity {
       padding: var(--space-6);
     }
-  }
-
-  .amenity--featured {
-    background:
-      radial-gradient(90% 60% at 100% 0%, var(--color-accent-soft), transparent 70%),
-      var(--color-surface);
   }
 
   .amenity__head {

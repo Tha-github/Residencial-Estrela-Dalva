@@ -50,12 +50,18 @@ test.describe('imagens e galeria', () => {
     expect(labels.at(-1)).toContain('sem grupo');
   });
 
-  test('mosaico mostra 5 e oferece "Ver todas as 7 fotos"', async ({ page }) => {
-    const visible = await page.$$eval('.gallery__item', (els) =>
-      els.filter((el) => (el as HTMLElement).offsetParent !== null).length,
-    );
-    expect(visible).toBe(5);
-    await expect(page.getByRole('button', { name: 'Ver todas as 7 fotos' })).toBeVisible();
+  test('carrossel: as 7 fotos no trilho; setas rolam e se desativam nas pontas', async ({ page }) => {
+    await expect(page.locator('.gallery .carousel__slide')).toHaveCount(7);
+    const track = page.locator('[data-track]');
+    const prev = page.getByRole('button', { name: 'Fotos anteriores' });
+    const next = page.getByRole('button', { name: 'Próximas fotos' });
+    await expect(prev).toBeDisabled();
+    await expect(next).toBeEnabled();
+    await next.click();
+    await expect.poll(() => track.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+    await expect(prev).toBeEnabled();
+    await track.evaluate((el) => el.scrollTo({ left: el.scrollWidth, behavior: 'instant' }));
+    await expect(next).toBeDisabled();
   });
 
   test('lightbox: abre, navega por teclado, anuncia posição, fecha com Esc e devolve o foco', async ({ page }) => {
@@ -103,11 +109,6 @@ test.describe('imagens e galeria', () => {
     for (const h of sizes) expect(h).toBeGreaterThanOrEqual(44);
     await page.mouse.click(10, 300);
     await expect(page.locator('dialog[data-lightbox]')).toBeHidden();
-  });
-
-  test('"Ver todas" abre na primeira foto fora do mosaico', async ({ page }) => {
-    await page.getByRole('button', { name: 'Ver todas as 7 fotos' }).click();
-    await expect(page.locator('[data-counter]')).toHaveText('Foto 6 de 7');
   });
 
   test('lightbox trava a rolagem da página enquanto aberto', async ({ page }) => {
@@ -197,6 +198,6 @@ test.describe('sem JavaScript', () => {
     const href = await page.locator('.gallery a').first().getAttribute('href');
     // dev: /_image?...&f=webp · build: /_astro/....webp
     expect(href).toMatch(/\.webp|f=webp/);
-    await expect(page.locator('[data-gallery-all]')).toBeHidden();
+    await expect(page.locator('.carousel__nav')).toBeHidden();
   });
 });

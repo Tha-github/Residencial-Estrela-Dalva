@@ -1,18 +1,20 @@
 ---
 /**
- * Galeria: mosaico + lightbox acessível.
+ * Galeria: carrossel horizontal + lightbox acessível.
  *
  * - Ordem narrativa via sortGallery (fachada → social → quartos → externa → detalhes).
  * - Miniaturas recortadas pelo ponto focal (`focus`); o lightbox mostra a foto inteira.
  * - AVIF/WebP + fallback, srcset/sizes, width/height reais (sem CLS), lazy-load.
- * - Sem JS: cada miniatura é um link para a foto ampliada e todas ficam visíveis.
- * - Com JS: mosaico de até 5 fotos + "Ver todas", lightbox em <dialog> com
+ * - Carrossel com scroll-snap: rola por toque/trackpad mesmo sem JS; com JS,
+ *   setas anterior/próxima (desativadas nas pontas).
+ * - Sem JS: cada foto é um link para a imagem ampliada.
+ * - Com JS: lightbox em <dialog> com
  *   setas/Home/End/Esc, deslizar no toque, contador anunciado e foco devolvido.
  * - Legenda só aparece quando informada no conteúdo — nada é rotulado automaticamente.
  */
 import { getImage, Picture } from 'astro:assets';
 import { SECTION_IDS } from '../../lib/content/derive';
-import { MOSAIC_SIZE, sortGallery } from '../../lib/content/gallery';
+import { sortGallery } from '../../lib/content/gallery';
 import type { Image } from '../../lib/content/schema';
 import { FORMATS, resolveImage, WIDTHS } from '../../lib/images';
 import Icon from '../ui/Icon.astro';
@@ -28,7 +30,6 @@ interface Props {
 const { images, tone, clientPreview = false } = Astro.props;
 const ordered = sortGallery(images);
 const count = ordered.length;
-const layout = Math.min(count, MOSAIC_SIZE);
 
 const items = await Promise.all(
   ordered.map(async (img) => {
@@ -53,25 +54,44 @@ const items = await Promise.all(
   }),
 );
 
+const PENDING = [
+  'Vista geral do loft (dois níveis)',
+  'Fachada ou chegada',
+  'Ambientes integrados do piso inferior',
+  'Mezanino',
+  'Cozinha',
+  'Área externa com churrasqueira',
+];
+
 const label = (i: number, img: Image) =>
   `Ampliar foto ${i + 1} de ${count}${img.alt ? `: ${img.alt}` : ''}`;
 ---
 
-<Section id={SECTION_IDS.gallery} eyebrow="Galeria" title="Fotos do *loft*" width="wide" tone={tone}>
+<Section id={SECTION_IDS.gallery} eyebrow="Galeria" title="Fotos do *loft*" width="wide" align="center" tone={tone}>
   {count === 0 && clientPreview ? (
-    <div class="gallery-preview" role="group" aria-label="Espaços reservados para fotos">
-      <PreviewPlaceholder kind="photo" shape="wide" label="Vista geral do loft (dois níveis)" />
-      <PreviewPlaceholder kind="photo" label="Fachada ou chegada" />
-      <PreviewPlaceholder kind="photo" label="Ambientes integrados do piso inferior" />
-      <PreviewPlaceholder kind="photo" label="Mezanino" />
-      <PreviewPlaceholder kind="photo" label="Cozinha" />
-      <PreviewPlaceholder kind="photo" label="Área externa com churrasqueira" />
+    <div class="carousel" data-carousel>
+      <ul class="carousel__track" role="list" aria-label="Espaços reservados para fotos" tabindex="0" data-track>
+        {PENDING.map((label) => (
+          <li class="carousel__slide">
+            <PreviewPlaceholder kind="photo" label={label} />
+          </li>
+        ))}
+      </ul>
+      <div class="carousel__nav">
+        <button type="button" class="carousel__btn" data-carousel-prev aria-label="Anteriores" disabled>
+          <Icon name="chevron-left" size={24} />
+        </button>
+        <button type="button" class="carousel__btn" data-carousel-next aria-label="Próximos">
+          <Icon name="chevron-right" size={24} />
+        </button>
+      </div>
     </div>
   ) : <div class="gallery-root" data-gallery>
-    <ul class:list={['gallery', `gallery--n${layout}`]} role="list">
+    <div class="carousel" data-carousel>
+    <ul class="carousel__track gallery" role="list" aria-label={`Fotos do loft (${count})`} tabindex="0" data-track>
       {
         items.map(({ img, file, large }, i) => (
-          <li class:list={['gallery__item', { 'gallery__item--extra': i >= MOSAIC_SIZE }]}>
+          <li class="carousel__slide gallery__item">
             <a
               class="gallery__link"
               href={large.fallback}
@@ -88,12 +108,8 @@ const label = (i: number, img: Image) =>
                 src={file}
                 alt=""
                 formats={[...FORMATS]}
-                widths={i === 0 ? [...WIDTHS.feature] : [...WIDTHS.thumb]}
-                sizes={
-                  i === 0
-                    ? '(min-width: 1280px) 44rem, (min-width: 768px) 50vw, 100vw'
-                    : '(min-width: 1280px) 22rem, (min-width: 768px) 25vw, 50vw'
-                }
+                widths={[...WIDTHS.feature]}
+                sizes="(min-width: 1024px) 30rem, (min-width: 768px) 46vw, 85vw"
                 loading="lazy"
                 decoding="async"
                 style={`object-position: ${img.focus}`}
@@ -107,13 +123,18 @@ const label = (i: number, img: Image) =>
     </ul>
 
     {
-      count > MOSAIC_SIZE && (
-        <button type="button" class="gallery__all" data-gallery-all data-start={MOSAIC_SIZE}>
-          <Icon name="image" size={18} />
-          Ver todas as {count} fotos
-        </button>
+      count > 1 && (
+        <div class="carousel__nav">
+          <button type="button" class="carousel__btn" data-carousel-prev aria-label="Fotos anteriores" disabled>
+            <Icon name="chevron-left" size={24} />
+          </button>
+          <button type="button" class="carousel__btn" data-carousel-next aria-label="Próximas fotos">
+            <Icon name="chevron-right" size={24} />
+          </button>
+        </div>
       )
     }
+    </div>
 
     <dialog class="lightbox" aria-label="Fotos ampliadas" data-lightbox>
       <div class="lightbox__frame">
@@ -148,6 +169,25 @@ const label = (i: number, img: Image) =>
 </Section>
 
 <script>
+  // Carrossel: setas rolam um item por vez; desativadas nas pontas.
+  // Vale para a galeria e para os quadros pendentes da prévia.
+  for (const carousel of document.querySelectorAll<HTMLElement>('[data-carousel]')) {
+    const track = carousel.querySelector<HTMLElement>('[data-track]');
+    const prevBtn = carousel.querySelector<HTMLButtonElement>('[data-carousel-prev]');
+    const nextBtn = carousel.querySelector<HTMLButtonElement>('[data-carousel-next]');
+    if (!track || !prevBtn || !nextBtn) continue;
+    const step = () => (track.querySelector<HTMLElement>('.carousel__slide')?.offsetWidth ?? track.clientWidth) + 16;
+    const update = () => {
+      prevBtn.disabled = track.scrollLeft <= 4;
+      nextBtn.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+    };
+    prevBtn.addEventListener('click', () => track.scrollBy({ left: -step() }));
+    nextBtn.addEventListener('click', () => track.scrollBy({ left: step() }));
+    track.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
   interface Slide {
     avif: string;
     webp: string;
@@ -179,7 +219,6 @@ const label = (i: number, img: Image) =>
     let current = 0;
     let opener: HTMLElement | null = null;
 
-    const all = root.querySelector<HTMLButtonElement>('[data-gallery-all]');
 
     const picture = (s: Slide, eager: boolean) => {
       const pic = document.createElement('picture');
@@ -255,8 +294,6 @@ const label = (i: number, img: Image) =>
         open(Number(link.dataset.index), link);
       });
     });
-    // "Ver todas" começa na primeira foto que não aparece no mosaico.
-    all?.addEventListener('click', () => open(Math.min(Number(all.dataset.start ?? 0), slides.length - 1), all));
 
     dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
     dialog.querySelector('[data-prev]')?.addEventListener('click', () => show(current - 1));
@@ -292,109 +329,97 @@ const label = (i: number, img: Image) =>
 </script>
 
 <style>
-  .gallery-preview {
+  /* ── Carrossel ───────────────────────────────────────────── */
+  .carousel {
+    position: relative;
+  }
+
+  .carousel__track {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--grid-gap);
-  }
-
-  .gallery-preview > :first-child {
-    grid-column: 1 / -1;
-  }
-
-  @media (min-width: 768px) {
-    .gallery-preview {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-    .gallery-preview > :first-child {
-      grid-column: span 2;
-      grid-row: span 2;
-      aspect-ratio: auto;
-    }
-  }
-
-  /* ── Mosaico ─────────────────────────────────────────────── */
-  .gallery {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: minmax(0, auto);
-    gap: var(--space-2);
+    grid-auto-flow: column;
+    grid-auto-columns: 85%;
+    gap: var(--space-4);
     margin: 0;
-    padding: 0;
+    padding: 0 0 var(--space-3);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
     list-style: none;
   }
 
-  .gallery__item {
+  @media (min-width: 768px) {
+    .carousel__track {
+      grid-auto-columns: calc((100% - var(--space-4)) / 2);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .carousel__track {
+      grid-auto-columns: calc((100% - 2 * var(--space-4)) / 3);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .carousel__track {
+      scroll-behavior: smooth;
+    }
+  }
+
+  .carousel__track:focus-visible {
+    outline-offset: 4px;
+  }
+
+  .carousel__slide {
     position: relative;
-    aspect-ratio: var(--ratio-square);
+    scroll-snap-align: start;
+    aspect-ratio: 4 / 3;
     overflow: hidden;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     background: var(--sand-200);
   }
 
-  /* Mobile: 1ª foto larga; se sobrar uma foto ímpar no fim, ela também ocupa a linha. */
-  .gallery__item:first-child,
-  .gallery__item:last-child:nth-child(even) {
-    grid-column: 1 / -1;
-    aspect-ratio: var(--ratio-landscape);
+  .carousel__slide :global(.preview-placeholder) {
+    height: 100%;
+    aspect-ratio: auto;
   }
 
-  /* Com JS, o mosaico mostra só as 5 primeiras; as demais ficam no lightbox.
-     Via (scripting: enabled) o estado final já vale na 1ª pintura — sem salto
-     de layout quando o JS carrega. Sem JS: todas as fotos visíveis. */
+  .carousel__nav {
+    display: none;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+
   @media (scripting: enabled) {
-    .gallery__item--extra {
-      display: none;
+    .carousel__nav {
+      display: flex;
     }
   }
 
-  @media (min-width: 768px) {
-    .gallery {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: var(--space-3);
-    }
+  .carousel__btn {
+    display: grid;
+    place-items: center;
+    width: var(--tap-target);
+    height: var(--tap-target);
+    padding: 0;
+    border: var(--border-width) solid var(--color-accent);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-accent);
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-standard),
+      opacity var(--duration-fast);
+  }
 
-    .gallery__item,
-    .gallery__item:last-child:nth-child(even) {
-      grid-column: auto;
-      aspect-ratio: var(--ratio-landscape);
-    }
+  .carousel__btn:hover:not(:disabled) {
+    background: var(--color-accent-soft);
+  }
 
-    /* 1 foto: uma faixa larga. */
-    .gallery--n1 .gallery__item:first-child {
-      grid-column: 1 / -1;
-      aspect-ratio: 21 / 9;
-    }
-
-    /* 2 fotos: metades. */
-    .gallery--n2 .gallery__item {
-      grid-column: span 2;
-      aspect-ratio: var(--ratio-landscape);
-    }
-
-    /* 3+ fotos: destaque 2×2 à esquerda. */
-    .gallery--n3 .gallery__item:first-child,
-    .gallery--n4 .gallery__item:first-child,
-    .gallery--n5 .gallery__item:first-child {
-      grid-column: span 2;
-      grid-row: span 2;
-      aspect-ratio: auto;
-    }
-
-    /* 3 fotos: duas largas empilhadas à direita. */
-    .gallery--n3 .gallery__item:not(:first-child) {
-      grid-column: span 2;
-    }
-
-    /* 4 fotos: uma larga em cima, duas embaixo. */
-    .gallery--n4 .gallery__item:nth-child(2) {
-      grid-column: span 2;
-    }
-
-    /* Sem JS e com mais de 5 fotos, as extras seguem em linhas de 4. */
-    .gallery--n5 .gallery__item--extra {
-      aspect-ratio: var(--ratio-landscape);
-    }
+  .carousel__btn:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   .gallery__link {
@@ -433,36 +458,6 @@ const label = (i: number, img: Image) =>
     background: linear-gradient(to top, var(--scrim-strong), var(--scrim-soft));
     color: var(--color-on-image);
     font-size: var(--text-sm);
-  }
-
-  .gallery__all {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: var(--tap-target);
-    margin-top: var(--space-5);
-    padding: var(--space-3) var(--space-5);
-    border: var(--border-width) solid var(--color-accent);
-    border-radius: var(--radius-pill);
-    background: transparent;
-    color: var(--color-accent);
-    font-size: var(--text-sm);
-    font-weight: var(--font-weight-bold);
-    cursor: pointer;
-  }
-
-  .gallery__all:hover {
-    background: var(--color-accent-soft);
-  }
-
-  .gallery__all {
-    display: none;
-  }
-
-  @media (scripting: enabled) {
-    .gallery__all {
-      display: inline-flex;
-    }
   }
 
   /* ── Lightbox ────────────────────────────────────────────── */

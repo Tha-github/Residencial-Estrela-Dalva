@@ -22,7 +22,11 @@
   "hero": {
     "title": "Seu refúgio em Florianópolis, *pertinho de tudo*.",
     "subtitle": "Um loft aconchegante nos Ingleses, com espaço para até quatro pessoas, estrutura completa e tudo o que você precisa para aproveitar seus dias na praia.",
-    "image": null
+    "image": {
+      "src": "/fotos/banner.png",
+      "alt": "Vista do alto de uma praia com mar azul-turquesa, longa faixa de areia e costão de pedras em primeiro plano",
+      "focus": "72% 55%"
+    }
   },
   "about": {
     "title": "Um loft pensado para aproveitar *cada momento*",

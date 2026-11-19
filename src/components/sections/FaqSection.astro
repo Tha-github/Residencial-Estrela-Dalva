@@ -18,7 +18,7 @@ interface Props {
 const { items, contact, tone } = Astro.props;
 ---
 
-<Section id={SECTION_IDS.faq} eyebrow="Dúvidas frequentes" title="Perguntas *sobre a estadia*" tone={tone}>
+<Section align="center" id={SECTION_IDS.faq} eyebrow="Dúvidas frequentes" title="Perguntas *sobre a estadia*" tone={tone}>
   <div class="faq">
     <div class="faq__list">
       {
@@ -40,8 +40,7 @@ const { items, contact, tone } = Astro.props;
           <a href={whatsappUrl(contact.whatsapp, contact.whatsappMessage)} target="_blank" rel="noopener noreferrer">
             Fale com o proprietário pelo WhatsApp {formatWhatsapp(contact.whatsapp)}
             <span class="visually-hidden">(abre em nova aba)</span>
-          </a>
-          .
+          </a>.
         </p>
       )
     }
@@ -51,6 +50,8 @@ const { items, contact, tone } = Astro.props;
 <style>
   .faq {
     max-width: 52rem;
+    margin-inline: auto;
+    text-align: center;
   }
 
   .faq__list {
@@ -64,8 +65,8 @@ const { items, contact, tone } = Astro.props;
   summary {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
+    justify-content: center;
+    gap: var(--space-3);
     min-height: var(--tap-target);
     padding: var(--space-4) 0;
     font-family: var(--font-display-stack);
@@ -97,8 +98,8 @@ const { items, contact, tone } = Astro.props;
 
   .faq__item p {
     max-width: var(--width-prose);
-    margin: 0;
-    padding: 0 var(--space-6) var(--space-5) 0;
+    margin: 0 auto;
+    padding: 0 var(--space-4) var(--space-5);
     color: var(--color-text-muted);
   }
 

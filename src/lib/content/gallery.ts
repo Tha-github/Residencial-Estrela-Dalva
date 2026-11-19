@@ -13,5 +13,3 @@ export function sortGallery(images: Image[]): Image[] {
     .map(({ img }) => img);
 }
 
-/** Quantas fotos aparecem no mosaico (as demais ficam no lightbox). */
-export const MOSAIC_SIZE = 5;

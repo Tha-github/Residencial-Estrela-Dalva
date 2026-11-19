@@ -46,7 +46,10 @@ const titleParts = (title ?? name).split(/\*(.+?)\*/);
               alt={image.alt}
               formats={[...FORMATS]}
               widths={[...WIDTHS.hero]}
-              sizes="(min-width: 1536px) 1472px, calc(100vw - 2rem)"
+              // A foto do banner é bem larga (~2,4:1) e a moldura é mais alta que ela:
+              // com object-fit: cover, ela é exibida bem mais larga que a tela
+              // (no celular, ~5×). O sizes reflete isso para não carregar foto borrada.
+              sizes="(max-width: 767px) 480vw, 130vw"
               loading="eager"
               fetchpriority="high"
               decoding="sync"
@@ -176,9 +179,17 @@ const titleParts = (title ?? name).split(/\*(.+?)\*/);
     z-index: -2;
   }
 
+  /* <picture> e <img> ocupam toda a moldura (sem isso a foto para na altura natural). */
+  .hero__media :global(picture) {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
   .hero__media :global(.hero__img) {
     width: 100%;
     height: 100%;
+    max-width: none;
     object-fit: cover;
   }
 
@@ -276,6 +287,12 @@ const titleParts = (title ?? name).split(/\*(.+?)\*/);
     }
     .shape--bar {
       display: none;
+    }
+    /* Com foto, o pedaço visível no celular é pequeno: o losango não desfoca a foto. */
+    .hero--photo .shape--diamond {
+      background: rgb(255 255 255 / 0.08);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
     .shape--star {
       top: 13%;
