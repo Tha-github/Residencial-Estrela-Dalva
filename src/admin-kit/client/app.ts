@@ -266,8 +266,8 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
       h(
         'div',
         { class: 'side__brand' },
-        h('span', { class: 'side__logo' }, 'TS'),
-        h('div', {}, h('strong', {}, spec.siteName), h('span', {}, 'Painel do site')),
+        h('strong', {}, spec.siteName),
+        h('span', {}, 'Painel do site'),
       ),
       nav,
     );
