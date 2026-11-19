@@ -10,7 +10,7 @@ A configuração só pode ser feita uma vez. O código de provisionamento é gua
 
 ### Abrir localmente
 
-Para ver a tela em `http://localhost:4321/admin/`, rode o Worker e o site em terminais separados:
+Para ver a tela em `http://127.0.0.1:4321/admin/`, rode o Worker e o site em terminais separados:
 
 ```powershell
 npm run admin:setup-secrets
@@ -23,14 +23,23 @@ npx wrangler@4.164.0 d1 migrations apply estrela-dalva-admin-config --local --co
 npm run admin:dev
 ```
 
-No segundo terminal, aponte o site para o Worker local e inicie o Astro:
+No segundo terminal, inicie o Astro:
 
 ```powershell
-$env:PUBLIC_ADMIN_API_URL = "http://localhost:8787"
-npm run dev
+npm run dev -- --host 127.0.0.1
 ```
 
-O botão aparece sem o Worker, mas o formulário só pode salvar quando a conexão local ou publicada estiver disponível.
+No desenvolvimento, o Astro encaminha `/__admin-worker/api/` para `127.0.0.1:5687` quando `PUBLIC_ADMIN_API_URL` não está definida. Antes de abrir o painel, consulte `http://127.0.0.1:4321/__admin-worker/api/setup/status`. Com um banco local recém-migrado, a resposta é `{"configured":false}`.
+
+Para rodar junto com o Ametista, use a porta `4322` para o Astro e passe essa origem ao Worker. Em terminais separados:
+
+```powershell
+npm run admin:dev -- --var ALLOWED_ORIGINS:http://127.0.0.1:4322
+```
+
+```powershell
+npm run dev -- --host 127.0.0.1 --port 4322
+```
 
 ## Módulos editáveis
 
@@ -105,4 +114,4 @@ O Worker valida se o token tem acesso de escrita ao repositório e salva a confi
 
 ## Estado da integração
 
-O código do painel, Worker, cadastro inicial, armazenamento cifrado, autenticação, upload, commit e publicação automática está pronto. Para o login funcionar no site publicado, a Top Site ainda precisa criar o D1, cadastrar os secrets, publicar o Worker e definir `ADMIN_API_URL` no GitHub Actions. Nenhuma senha ou token foi inventado ou incluído no projeto.
+O D1 foi criado e migrado, o Worker foi publicado com os secrets e o GitHub Pages foi republicado com `ADMIN_API_URL`. O painel já se comunica com o Worker e aguarda o cadastro inicial do proprietário, conforme o passo 4. O código de provisionamento foi salvo no arquivo local `.env.admin-production`, ignorado pelo Git.

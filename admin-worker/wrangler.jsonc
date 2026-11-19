@@ -8,17 +8,21 @@
   "name": "estrela-dalva-admin",
   "main": "src/index.ts",
   "compatibility_date": "2026-11-10",
+  "dev": {
+    "ip": "127.0.0.1",
+    "port": 5687,
+  },
   "vars": {
     "GITHUB_REPO": "Tha-github/Residencial-Estrela-Dalva",
     "GITHUB_BRANCH": "main",
-    "ALLOWED_ORIGINS": "https://tha-github.github.io,http://localhost:4321",
+    "ALLOWED_ORIGINS": "https://tha-github.github.io,http://localhost:4321,http://127.0.0.1:4321",
     "SESSION_HOURS": "8",
   },
   "d1_databases": [
     {
       "binding": "CONFIG",
       "database_name": "estrela-dalva-admin-config",
-    "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "8792efa5-8a75-4607-a397-0b5300996112",
       "migrations_dir": "migrations",
     },
   ],

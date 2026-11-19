@@ -13,6 +13,7 @@ const deployEnv =env.PUBLIC_DEPLOY_ENV ?? 'development';
 const siteUrl = env.PUBLIC_SITE_URL || undefined;
 const basePath = process.env.BASE_PATH ?? env.BASE_PATH ?? '/';
 const astroBase = basePath === '/' ? '/' : `/${basePath.replace(/^\/+|\/+$/g, '')}`;
+const adminProxyPath = `${astroBase === '/' ? '' : astroBase}/__admin-worker`;
 
 // Falha cedo: um build de produção sem domínio canônico geraria URLs erradas.
 if (deployEnv === 'production' && !siteUrl) {
@@ -45,6 +46,16 @@ export default defineConfig({
   integrations: [devOnlyRoutes],
   output: 'static',
   trailingSlash: 'ignore',
+  vite: {
+    server: {
+      proxy: {
+        [`${adminProxyPath}/api/`]: {
+          target: `http://127.0.0.1:${env.ADMIN_WORKER_DEV_PORT || '5687'}`,
+          rewrite: (path) => path.slice(adminProxyPath.length),
+        },
+      },
+    },
+  },
   build: {
     format: 'directory',
   },
