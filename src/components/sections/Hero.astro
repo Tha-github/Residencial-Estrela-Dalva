@@ -19,7 +19,6 @@ import Icon from '../ui/Icon.astro';
 
 interface Props {
   name: string;
-  unitLabel: string;
   title: string | null;
   subtitle: string | null;
   image: Image | null;
@@ -29,7 +28,7 @@ interface Props {
   clientPreview?: boolean;
 }
 
-const { name, unitLabel, title, subtitle, image, highlights, cta, secondaryCta, clientPreview = false } = Astro.props;
+const { name, title, subtitle, image, highlights, cta, secondaryCta, clientPreview = false } = Astro.props;
 const heroFile = image ? resolveImage(image.src) : null;
 const titleParts = (title ?? name).split(/\*(.+?)\*/);
 ---
@@ -59,14 +58,6 @@ const titleParts = (title ?? name).split(/\*(.+?)\*/);
           )
         }
         <div class="hero__scrim"></div>
-      </div>
-
-      <!-- Formas geométricas translúcidas: profundidade, sem informação. -->
-      <div class="hero__shapes" aria-hidden="true">
-        <span class="shape shape--diamond"></span>
-        <span class="shape shape--circle"></span>
-        <span class="shape shape--bar"></span>
-        <span class="shape shape--star"></span>
       </div>
 
       <div class="hero__panel">
@@ -109,8 +100,6 @@ const titleParts = (title ?? name).split(/\*(.+?)\*/);
           )
         }
       </div>
-
-      <p class="hero__unit" aria-hidden="true">{unitLabel}</p>
 
       {
         clientPreview && !image && (
@@ -214,119 +203,6 @@ const titleParts = (title ?? name).split(/\*(.+?)\*/);
     mask-image: linear-gradient(180deg, transparent 0%, black 45%, transparent 100%);
   }
 
-  /* ── Formas de vidro ────────────────────────────────────── */
-  .hero__shapes {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  .shape {
-    position: absolute;
-    display: block;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-light);
-    backdrop-filter: blur(8px) saturate(1.2);
-    -webkit-backdrop-filter: blur(8px) saturate(1.2);
-  }
-
-  .shape--diamond {
-    top: 8%;
-    right: -10%;
-    width: clamp(12rem, 34vw, 30rem);
-    aspect-ratio: 1;
-    border-radius: var(--radius-xl);
-    transform: rotate(45deg);
-  }
-
-  .shape--circle {
-    top: 4%;
-    left: 52%;
-    width: clamp(6rem, 13vw, 11rem);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border-color: rgb(255 255 255 / 0.45);
-  }
-
-  .shape--bar {
-    bottom: 14%;
-    right: 26%;
-    width: clamp(3.5rem, 6vw, 5.5rem);
-    height: 46%;
-    border-radius: var(--radius-pill);
-  }
-
-  /* Estrela de quatro pontas — a Estrela-d'Alva, motivo da marca. */
-  .shape--star {
-    top: 18%;
-    right: 15%;
-    width: clamp(4rem, 8vw, 7rem);
-    aspect-ratio: 1;
-    border: 0;
-    background: rgb(255 255 255 / 0.3);
-    /* Sem desfoque: o Chrome desfoca o retângulo inteiro, ignorando o recorte em estrela. */
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    clip-path: polygon(50% 0%, 59% 41%, 100% 50%, 59% 59%, 50% 100%, 41% 59%, 0% 50%, 41% 41%);
-  }
-
-  @media (max-width: 767.98px) {
-    .shape--diamond {
-      top: -6%;
-      right: -22%;
-      width: 15rem;
-    }
-    .shape--circle {
-      top: 9%;
-      left: 8%;
-      width: 5rem;
-    }
-    .shape--bar {
-      display: none;
-    }
-    /* Com foto, o pedaço visível no celular é pequeno: o losango não desfoca a foto. */
-    .hero--photo .shape--diamond {
-      background: rgb(255 255 255 / 0.08);
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-    }
-    .shape--star {
-      top: 13%;
-      right: 30%;
-      width: 3.25rem;
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .shape--star {
-      animation: star-glow 6s ease-in-out infinite alternate;
-    }
-    .shape--circle {
-      animation: drift 9s ease-in-out infinite alternate;
-    }
-  }
-
-  @keyframes star-glow {
-    from {
-      opacity: 0.55;
-      transform: scale(0.94) rotate(0deg);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1.04) rotate(8deg);
-    }
-  }
-
-  @keyframes drift {
-    to {
-      transform: translate(10px, 8px);
-    }
-  }
-
   /* ── Painel de vidro com o texto ────────────────────────── */
   .hero__panel {
     position: relative;
@@ -427,29 +303,6 @@ const titleParts = (title ?? name).split(/\*(.+?)\*/);
     .hero__actions :global(.btn) {
       flex: 1 1 100%;
       padding-inline: var(--space-4);
-    }
-  }
-
-  /* Identificação da unidade, gravada no canto como numa placa. */
-  .hero__unit {
-    position: absolute;
-    top: var(--space-5);
-    right: var(--space-5);
-    margin: 0;
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-sm);
-    background: rgb(var(--sea-rgb) / 0.55);
-    font-size: var(--text-xs);
-    font-weight: var(--font-weight-bold);
-    letter-spacing: var(--tracking-eyebrow);
-    text-transform: uppercase;
-  }
-
-  @media (max-width: 767.98px) {
-    .hero__unit {
-      top: var(--space-3);
-      right: var(--space-3);
     }
   }
 

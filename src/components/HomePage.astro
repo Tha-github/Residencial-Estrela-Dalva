@@ -27,7 +27,6 @@ import SleepingSection from './sections/SleepingSection.astro';
 import PendingContent from './dev/PendingContent.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import {
-  getBookingPlatforms,
   getFaq,
   getHeroHighlights,
   getNavItems,
@@ -54,7 +53,6 @@ const visible = getVisibility(content);
 const display = { ...visible, gallery: visible.gallery || clientPreview, booking: visible.booking || clientPreview };
 const tone = getSectionTones(display);
 const toneOf = (key: keyof typeof tone) => (tone[key] === 'inverse' ? 'default' : tone[key]);
-const platforms = getBookingPlatforms(content);
 const nav = getNavItems(display);
 const { hero, property } = content;
 const faq = getFaq(content);
@@ -62,23 +60,13 @@ const faq = getFaq(content);
 const bookingHref = `#${SECTION_IDS.booking}`;
 const heroCta = display.booking ? { href: bookingHref, label: 'Consultar disponibilidade' } : null;
 const heroSecondary = display.loft ? { href: `#${SECTION_IDS.loft}`, label: `Conhecer o ${property.type.toLowerCase()}` } : null;
-const unitLabel = [property.type, property.unit.replace(/^Apartamento\s+/i, 'Apto '), property.reference].filter(Boolean).join(' · ');
 ---
 
 <BaseLayout title={pageTitle ?? content.name} description={description} noindex={noindex}>
   <Header slot="header" name={content.name} nav={nav} cta={display.booking ? { href: bookingHref, label: 'Reservar' } : null} />
 
-  {
-    clientPreview && (
-      <div class="client-preview-banner" role="status">
-        Prévia para revisão: os quadros tracejados mostram onde entram fotos e links ainda pendentes.
-      </div>
-    )
-  }
-
   <Hero
     name={content.name}
-    unitLabel={unitLabel}
     title={hero.title}
     subtitle={hero.subtitle}
     image={hero.image}
@@ -109,16 +97,7 @@ const unitLabel = [property.type, property.unit.replace(/^Apartamento\s+/i, 'Apt
 
   {!clientPreview && <PendingContent items={getPendingItems(content)} />}
 
-  <Footer slot="footer" content={content} nav={nav} platforms={platforms} />
+  <Footer slot="footer" content={content} nav={nav} platforms={getPlatformSlots(content, clientPreview)} />
   {display.booking && <MobileBookingBar slot="footer" />}
 </BaseLayout>
 
-<style>
-  .client-preview-banner {
-    padding: var(--space-3) var(--gutter);
-    background: var(--color-dev-notice-bg);
-    color: var(--color-heading);
-    font-size: var(--text-sm);
-    text-align: center;
-  }
-</style>

@@ -50,14 +50,18 @@ const year = new Date().getFullYear();
     {
       platforms.length > 0 && (
         <div class="footer__col">
-          <h2 class="footer__heading">Reservas</h2>
+          <h2 class="footer__heading">Reservar</h2>
           <ul role="list">
             {platforms.map((pl) => (
               <li>
-                <a href={pl.url} target="_blank" rel="noopener noreferrer">
-                  {pl.name}
-                  <span class="visually-hidden">(abre em nova aba)</span>
-                </a>
+                {pl.url ? (
+                  <a href={pl.url} target="_blank" rel="noopener noreferrer">
+                    {pl.name}
+                    <span class="visually-hidden">(abre em nova aba)</span>
+                  </a>
+                ) : (
+                  <span>{pl.name}</span>
+                )}
               </li>
             ))}
           </ul>
