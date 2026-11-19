@@ -4,7 +4,7 @@
  * Único lugar com acesso ao GitHub. O navegador nunca vê o token.
  *
  * Rotas (todas sob /api, JSON):
- *   POST /api/login      { password }                 → { token, expiresAt }
+ *   POST /api/login      { accessKey, password }      → { token, expiresAt }
  *   GET  /api/session                                  → 204 se a sessão vale
  *   GET  /api/content                                  → { content, sha, photos }
  *   GET  /api/photo?path=<foto>                        → bytes da foto (prévia)
@@ -21,12 +21,21 @@
  *   - Publicação recusada se o conteúdo mudou desde que o painel o abriu.
  */
 import { applyEdits, EditError, imageSources, type SiteSpec } from '../../src/admin-kit/spec';
-import { b64, createSession, sign, verifyPassword, verifySession, verifySignature } from './auth';
+import {
+  b64,
+  createSession,
+  sign,
+  timingSafeEqual,
+  verifyPassword,
+  verifySession,
+  verifySignature,
+} from './auth';
 import { GitHub, GitHubError, type TreeChange } from './github';
 import { checkImage } from './images';
 
 export interface Env {
   GITHUB_TOKEN: string;
+  ADMIN_ACCESS_KEY: string;
   ADMIN_PASSWORD_HASH: string;
   SESSION_SECRET: string;
   GITHUB_REPO: string;
@@ -148,10 +157,21 @@ export async function handle(
         if (!success) throw new HttpError(429, 'Muitas tentativas. Aguarde um minuto.');
       }
       const body = await readJson(request, 4096);
-      const ok = await verifyPassword(String(body.password ?? ''), env.ADMIN_PASSWORD_HASH);
+      if (!env.ADMIN_ACCESS_KEY || !env.ADMIN_PASSWORD_HASH || !env.SESSION_SECRET) {
+        throw new HttpError(503, 'O acesso ao painel ainda não foi configurado.');
+      }
+      const accessKey = String(body.accessKey ?? '');
+      const expectedKey = new TextEncoder().encode(env.ADMIN_ACCESS_KEY);
+      const submittedKey = new TextEncoder().encode(accessKey);
+      const keyMatches = timingSafeEqual(submittedKey, expectedKey);
+      const passwordMatches = await verifyPassword(
+        String(body.password ?? ''),
+        env.ADMIN_PASSWORD_HASH,
+      );
+      const ok = keyMatches && passwordMatches;
       if (!ok) {
         await new Promise((r) => setTimeout(r, 700)); // desestimula tentativas em série
-        throw new HttpError(401, 'Senha incorreta.');
+        throw new HttpError(401, 'Chave de acesso ou senha incorreta.');
       }
       const hours = Math.min(Math.max(Number(env.SESSION_HOURS ?? 8) || 8, 1), 24);
       return json(await createSession(env.SESSION_SECRET, site.id, hours), 200, cors);

@@ -1,7 +1,7 @@
 /**
  * Worker do painel do Residencial Estrela Dalva.
  * Configuração: admin-worker/wrangler.jsonc (variáveis) + secrets
- * (GITHUB_TOKEN, ADMIN_PASSWORD_HASH, SESSION_SECRET). Ver
+ * (GITHUB_TOKEN, ADMIN_ACCESS_KEY, ADMIN_PASSWORD_HASH, SESSION_SECRET). Ver
  * docs/10-painel-administrativo-github.md.
  */
 import { estrelaDalvaSpec } from '../../src/admin-sites/estrela-dalva';

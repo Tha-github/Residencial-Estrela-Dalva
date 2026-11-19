@@ -1,7 +1,7 @@
 /**
  * Top Site Admin — interface do painel (padrão reutilizável).
  *
- * Fluxo: senha → conteúdo atual (via Worker, direto do GitHub) → edição por
+ * Fluxo: chave de acesso + senha → conteúdo atual (via Worker, direto do GitHub) → edição por
  * módulos (somente campos do descritor) → prévia → confirmação → publicação
  * (um commit) → acompanhamento até o site ser atualizado.
  */
@@ -82,6 +82,15 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
   /* ------------------------------ login ------------------------------ */
 
   function showLogin(message?: string, reauth = false) {
+    const keyId = 'admin-access-key';
+    const keyInput = h('input', {
+      id: keyId,
+      type: 'password',
+      class: 'inp',
+      autocomplete: 'off',
+      spellcheck: false,
+      required: true,
+    });
     const id = 'admin-password';
     const input = h('input', {
       id,
@@ -107,8 +116,10 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
         { class: 'login__lead' },
         reauth
           ? 'Sua sessão expirou. Entre de novo para continuar — suas alterações foram mantidas.'
-          : 'Digite a senha para editar o conteúdo do site.',
+          : 'Digite sua chave de acesso e senha para editar o conteúdo do site.',
       ),
+      h('label', { class: 'fld__label', for: keyId }, 'Chave de acesso'),
+      keyInput,
       h('label', { class: 'fld__label', for: id }, 'Senha'),
       input,
       error,
@@ -120,7 +131,7 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
       button.textContent = 'Entrando…';
       error.hidden = true;
       try {
-        await api.login(input.value);
+        await api.login(keyInput.value, input.value);
         if (reauth && state) showApp();
         else await load();
       } catch (err) {
@@ -133,7 +144,7 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
       }
     });
     root.replaceChildren(h('main', { class: 'login' }, form));
-    input.focus();
+    keyInput.focus();
   }
 
   async function load() {

@@ -5,6 +5,7 @@
  *   npm run admin:hash-password
  *
  * Pede a senha do proprietário (sem mostrar na tela) e imprime:
+ *   - ADMIN_ACCESS_KEY     (chave aleatória para o campo Chave de acesso)
  *   - ADMIN_PASSWORD_HASH  (PBKDF2-SHA256, 100.000 iterações, sal aleatório)
  *   - SESSION_SECRET       (64 caracteres aleatórios)
  * Cole cada valor em `npx wrangler secret put <NOME>` (pasta admin-worker).
@@ -64,6 +65,8 @@ const bits = new Uint8Array(
 );
 const b64 = (u8) => Buffer.from(u8).toString('base64');
 const secret = Buffer.from(crypto.getRandomValues(new Uint8Array(48))).toString('base64url');
+const accessKey = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64url');
 
+stdout.write(`\nADMIN_ACCESS_KEY=${accessKey}\n`);
 stdout.write(`\nADMIN_PASSWORD_HASH=pbkdf2-sha256$${ITERATIONS}$${b64(salt)}$${b64(bits)}\n`);
 stdout.write(`SESSION_SECRET=${secret}\n\n`);

@@ -1,6 +1,7 @@
 // Worker independente do painel administrativo — Residencial Estrela Dalva.
 // Variáveis públicas aqui; segredos SOMENTE via `wrangler secret put`:
 //   GITHUB_TOKEN         token fine-grained, só este repositório (Contents: RW, Actions: R)
+//   ADMIN_ACCESS_KEY     chave aleatória gerada por `npm run admin:hash-password`
 //   ADMIN_PASSWORD_HASH  gerado por `npm run admin:hash-password`
 //   SESSION_SECRET       texto aleatório longo (≥ 32 caracteres)
 {

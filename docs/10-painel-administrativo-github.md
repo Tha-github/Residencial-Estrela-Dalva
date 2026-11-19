@@ -3,13 +3,13 @@
 O painel em `/admin/` segue o padrão Top Site Admin do Residencial Ametista. A interface é estática no GitHub Pages; login, validação, upload e publicação são processados por um Cloudflare Worker exclusivo deste repositório.
 
 ```text
-Proprietário → senha → Worker Estrela Dalva → GitHub API
+Proprietário → chave de acesso + senha → Worker Estrela Dalva → GitHub API
                                │                    ├── commit em src/data/residencial.json
                                │                    ├── fotos em src/assets/fotos/uploads/
                                └── token de sessão  └── Actions publica no GitHub Pages
 ```
 
-O token do GitHub e o hash da senha ficam como secrets do Worker. O navegador recebe apenas um token de sessão de oito horas. Não há conexão, credencial nem arquivo compartilhado com o Residencial Ametista.
+O token do GitHub, a chave de acesso e o hash da senha ficam como secrets do Worker. O navegador envia a chave de acesso e a senha somente ao Worker por HTTPS e recebe apenas um token de sessão de oito horas. Não há conexão, credencial nem arquivo compartilhado com o Residencial Ametista.
 
 ## Módulos editáveis
 
@@ -38,12 +38,13 @@ Crie um token GitHub fine-grained restrito **somente** a `Tha-github/Residencial
 npm run admin:hash-password
 npx wrangler@4.164.0 login
 npx wrangler@4.164.0 secret put GITHUB_TOKEN --config admin-worker/wrangler.jsonc
+npx wrangler@4.164.0 secret put ADMIN_ACCESS_KEY --config admin-worker/wrangler.jsonc
 npx wrangler@4.164.0 secret put ADMIN_PASSWORD_HASH --config admin-worker/wrangler.jsonc
 npx wrangler@4.164.0 secret put SESSION_SECRET --config admin-worker/wrangler.jsonc
 npm run admin:deploy
 ```
 
-O primeiro comando pede a senha do proprietário sem exibi-la e imprime `ADMIN_PASSWORD_HASH` e `SESSION_SECRET`. Grave cada valor com o `wrangler secret put` correspondente. Nunca salve a senha, o token GitHub ou os valores de sessão em arquivos versionados ou variáveis `PUBLIC_*`.
+O primeiro comando pede a senha do proprietário sem exibi-la e imprime `ADMIN_ACCESS_KEY`, `ADMIN_PASSWORD_HASH` e `SESSION_SECRET`. Grave cada valor com o `wrangler secret put` correspondente e guarde a chave de acesso em um gerenciador de senhas para usá-la na tela `/admin/`. Nunca salve a senha, a chave, o token GitHub ou os valores de sessão em arquivos versionados ou variáveis `PUBLIC_*`. O token do GitHub é somente para o Worker; não é a chave digitada no login.
 
 O deploy do Worker informa uma URL semelhante a `https://estrela-dalva-admin.<conta>.workers.dev`.
 

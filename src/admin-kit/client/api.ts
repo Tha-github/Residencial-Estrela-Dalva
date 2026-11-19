@@ -82,10 +82,10 @@ export class Api {
     return body as T;
   }
 
-  async login(password: string) {
+  async login(accessKey: string, password: string) {
     const r = await this.call<{ token: string; expiresAt: number }>('/api/login', {
       method: 'POST',
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ accessKey, password }),
     });
     this.token = r.token;
   }
