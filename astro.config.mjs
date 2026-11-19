@@ -55,20 +55,27 @@ export default defineConfig({
   fonts: [
     {
       provider: fontProviders.local(),
-      name: 'Instrument Serif',
+      // Mesma família de títulos do Residencial Ametista (identidade comum do proprietário).
+      name: 'Newsreader',
       cssVariable: '--font-display',
       fallbacks: ['Georgia', 'serif'],
       display: 'swap',
       options: {
         variants: [
           {
-            src: ['@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2'],
+            src: ['@fontsource/newsreader/files/newsreader-latin-400-normal.woff2'],
             weight: 400,
             style: 'normal',
             unicodeRange: [LATIN],
           },
           {
-            src: ['@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2'],
+            src: ['@fontsource/newsreader/files/newsreader-latin-500-normal.woff2'],
+            weight: 500,
+            style: 'normal',
+            unicodeRange: [LATIN],
+          },
+          {
+            src: ['@fontsource/newsreader/files/newsreader-latin-400-italic.woff2'],
             weight: 400,
             style: 'italic',
             unicodeRange: [LATIN],

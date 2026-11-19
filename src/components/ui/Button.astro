@@ -3,14 +3,15 @@
  * Botão/link de ação.
  * - Com `href`, renderiza <a>; sem, <button>.
  * - `external`: abre em nova aba com rel seguro e avisa leitores de tela.
- * Variantes: primary (ação principal), secondary (contorno), on-image (sobre foto), quiet (texto).
+ * Variantes: primary (ação principal), secondary (contorno), on-image / on-image-outline
+ * (sobre foto ou faixa escura), quiet (texto). Formato igual ao do Ametista (raio 6px).
  */
 import type { HTMLAttributes } from 'astro/types';
 import Icon, { type IconName } from './Icon.astro';
 
 interface Props {
   href?: string;
-  variant?: 'primary' | 'secondary' | 'on-image' | 'quiet';
+  variant?: 'primary' | 'secondary' | 'on-image' | 'on-image-outline' | 'quiet';
   size?: 'md' | 'lg';
   external?: boolean;
   icon?: IconName;
@@ -64,11 +65,11 @@ const linkAttrs: HTMLAttributes<'a'> = external ? { target: '_blank', rel: 'noop
     min-height: var(--tap-target);
     padding: var(--space-3) var(--space-5);
     border: var(--border-width) solid transparent;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-md);
     font-family: var(--font-sans-stack);
     font-size: var(--text-sm);
     font-weight: var(--font-weight-bold);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     line-height: 1.2;
     text-align: center;
     text-decoration: none;
@@ -120,16 +121,28 @@ const linkAttrs: HTMLAttributes<'a'> = external ? { target: '_blank', rel: 'noop
   }
 
   .btn--on-image {
-    background: var(--color-on-image);
-    color: var(--color-heading);
+    background: var(--sand-50);
+    color: var(--sea-950);
   }
 
   .btn--on-image:hover {
-    background: var(--color-accent-soft);
-    color: var(--color-heading);
+    background: var(--white);
+    color: var(--sea-950);
   }
 
-  .btn--on-image:focus-visible {
+  .btn--on-image-outline {
+    background: transparent;
+    border-color: rgb(255 255 255 / 0.7);
+    color: var(--color-on-image);
+  }
+
+  .btn--on-image-outline:hover {
+    background: rgb(255 255 255 / 0.12);
+    color: var(--color-on-image);
+  }
+
+  .btn--on-image:focus-visible,
+  .btn--on-image-outline:focus-visible {
     outline-color: var(--color-focus-on-dark);
   }
 

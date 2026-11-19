@@ -2,13 +2,20 @@ import { describe, expect, it } from 'vitest';
 import raw from '../../src/data/residencial.json';
 import { devFixture } from '../../src/data/dev-fixture';
 import {
+  formatDistance,
+  formatTime,
   formatWhatsapp,
   getBookingPlatforms,
-  getKeyFacts,
+  getFaq,
+  getHeroHighlights,
   getNavItems,
+  getPlatformSlots,
   getSectionTones,
   getVisibility,
   instagramHandle,
+  joinList,
+  mailtoUrl,
+  photoOf,
   whatsappUrl,
 } from '../../src/lib/content/derive';
 import { parseContent } from '../../src/lib/content/load';
@@ -18,15 +25,17 @@ const real = parseContent(raw);
 const full = parseContent(devFixture);
 
 describe('visibilidade das seções', () => {
-  it('conteúdo atual: mostra só o que está confirmado', () => {
+  it('conteúdo atual: mostra o que está confirmado; galeria só com fotos', () => {
     expect(getVisibility(real)).toEqual({
-      about: true,
+      loft: true,
       gallery: false,
-      highlights: true,
-      practical: false,
-      location: false,
-      booking: false,
-      contact: false,
+      sleeping: true,
+      amenities: true,
+      location: true,
+      experience: true,
+      practical: true,
+      booking: true, // contato direto já confirmado
+      faq: true,
     });
   });
 
@@ -34,21 +43,32 @@ describe('visibilidade das seções', () => {
     expect(Object.values(getVisibility(full)).every(Boolean)).toBe(true);
   });
 
-  it('fundos alternam entre seções visíveis vizinhas', () => {
-    expect(getSectionTones(getVisibility(real))).toMatchObject({ about: 'default', highlights: 'alt' });
+  it('fundos: experiência é a faixa escura; vizinhas claras nunca repetem o fundo', () => {
     const tones = getSectionTones(getVisibility(full));
-    expect(Object.values(tones)).toEqual(['default', 'alt', 'default', 'alt', 'default', 'alt', 'default']);
+    expect(tones.experience).toBe('inverse');
+    const order = ['loft', 'gallery', 'sleeping', 'amenities', 'location'] as const;
+    order.slice(1).forEach((key, i) => expect(tones[key]).not.toBe(tones[order[i]!]));
   });
 
   it('navegação lista só seções visíveis e tem no máximo 5 itens', () => {
-    expect(getNavItems(getVisibility(real)).map((i) => i.href)).toEqual(['#o-residencial']);
+    const nav = getNavItems(getVisibility(real));
+    expect(nav.map((i) => i.href)).toEqual(['#o-loft', '#acomodacao', '#comodidades', '#localizacao', '#duvidas']);
     expect(getNavItems(getVisibility(full)).length).toBeLessThanOrEqual(5);
   });
 });
 
 describe('plataformas de reserva', () => {
-  it('sem links, não há plataformas (nada de botão sem destino)', () => {
+  it('sem links, não há plataformas ativas (nada de botão sem destino)', () => {
     expect(getBookingPlatforms(real)).toEqual([]);
+  });
+
+  it('prévia: Booking.com e Airbnb aparecem como pendências, sem URL; Decolar não', () => {
+    const slots = getPlatformSlots(real, true);
+    expect(slots.map((s) => [s.id, s.url])).toEqual([
+      ['booking', null],
+      ['airbnb', null],
+    ]);
+    expect(getPlatformSlots(real, false)).toEqual([]);
   });
 
   it('ordem fixa e gramática correta (no Booking.com / na Decolar)', () => {
@@ -57,36 +77,93 @@ describe('plataformas de reserva', () => {
     expect(platforms.map((p) => p.inName)).toEqual(['no Booking.com', 'no Airbnb', 'na Decolar']);
     expect(platforms[2]?.byName).toBe('pela Decolar');
   });
-
-  it('inclui só as plataformas com link', () => {
-    const one = parseContent({ ...raw, booking: { booking: null, airbnb: 'https://www.airbnb.com.br/rooms/1', decolar: null } });
-    expect(getBookingPlatforms(one).map((p) => p.name)).toEqual(['Airbnb']);
-  });
 });
 
 describe('formatação', () => {
-  it('WhatsApp', () => {
-    expect(whatsappUrl('5548999998888')).toBe('https://wa.me/5548999998888');
-    expect(formatWhatsapp('5548999998888')).toBe('+55 (48) 99999-8888');
+  it('WhatsApp com mensagem inicial codificada', () => {
+    expect(whatsappUrl('5548999471321')).toBe('https://wa.me/5548999471321');
+    expect(whatsappUrl('5548999471321', 'Olá! Tudo bem?')).toBe(
+      'https://wa.me/5548999471321?text=Ol%C3%A1!%20Tudo%20bem%3F',
+    );
+    expect(formatWhatsapp('5548999471321')).toBe('+55 (48) 99947-1321');
     expect(formatWhatsapp('554833334444')).toBe('+55 (48) 3333-4444');
+  });
+
+  it('e-mail com assunto', () => {
+    expect(mailtoUrl('a@b.com')).toBe('mailto:a@b.com');
+    expect(mailtoUrl('a@b.com', 'Olá você')).toBe('mailto:a@b.com?subject=Ol%C3%A1%20voc%C3%AA');
+  });
+
+  it('horários, distâncias e listas', () => {
+    expect(formatTime('14:00')).toBe('14h');
+    expect(formatTime('09:30')).toBe('9h30');
+    expect(formatDistance(450)).toBe('450 m');
+    expect(formatDistance(1200)).toBe('1,2 km');
+    expect(joinList(['a', 'b', 'c'])).toBe('a, b e c');
+    expect(joinList(['a'])).toBe('a');
   });
 
   it('Instagram', () => {
     expect(instagramHandle('https://www.instagram.com/residencial/')).toBe('@residencial');
   });
 
-  it('fatos com singular/plural', () => {
-    const one = parseContent({ ...raw, practical: { ...raw.practical, bedrooms: 1, bathrooms: 2 } });
-    expect(getKeyFacts(one)).toEqual([
-      { value: '1', label: 'quarto' },
-      { value: '2', label: 'banheiros' },
+  it('destaques do banner vêm da capacidade e das distâncias', () => {
+    expect(getHeroHighlights(real).map((h) => h.text)).toEqual([
+      'Até 4 hóspedes',
+      '450 m da praia',
+      '200 m do Centrinho',
     ]);
+  });
+
+  it('foto por grupo: primeira cadastrada do grupo, ou null', () => {
+    expect(photoOf(real, 'mezanino')).toBeNull();
+    expect(photoOf(full, 'mezanino')?.src).toBe('/dev/exemplo-04.jpg');
+  });
+});
+
+describe('perguntas frequentes', () => {
+  const faq = getFaq(real);
+  const answer = (q: RegExp) => faq.find((f) => q.test(f.question))?.answer;
+
+  it('responde só com os dados confirmados', () => {
+    expect(answer(/Quantas pessoas/)).toBe('Até quatro pessoas.');
+    expect(answer(/camas/)).toContain('mezanino');
+    expect(answer(/camas/)).toContain('sofá-cama');
+    expect(answer(/camas/)).toContain('não há quartos separados');
+    expect(answer(/Praia dos Ingleses/)).toBe('Aproximadamente 450 metros.');
+    expect(answer(/Centrinho/)).toBe('Aproximadamente 200 metros.');
+    expect(answer(/check-in/)).toBe('A partir das 14h.');
+    expect(answer(/check-out/)).toBe('Até as 11h.');
+    expect(answer(/cozinha/)).toContain('air fryer');
+  });
+
+  it('sem links de plataforma, reserva fala só do contato direto', () => {
+    expect(answer(/reserva/)).toBe(
+      'Você pode reservar diretamente com o proprietário, por WhatsApp e e-mail. As opções estão na seção de reservas.',
+    );
+    expect(getFaq(full).find((f) => /reserva/.test(f.question))?.answer).toContain('Booking.com, Airbnb e Decolar');
+  });
+
+  it('não inventa políticas: sem perguntas sobre cancelamento, animais, estacionamento ou taxas', () => {
+    expect(faq.some((f) => /cancel|animal|pet|estacion|taxa|toalha|roupa de cama/i.test(f.question))).toBe(false);
+  });
+
+  it('dado ausente remove a pergunta', () => {
+    const noTimes = parseContent({ ...raw, practical: { ...raw.practical, checkIn: null, checkOut: null } });
+    expect(getFaq(noTimes).some((f) => /check-/.test(f.question))).toBe(false);
   });
 });
 
 describe('trava de lançamento', () => {
-  it('bloqueia produção com dados obrigatórios pendentes', () => {
-    expect(() => assertReadyForLaunch(real)).toThrow(LaunchBlockedError);
+  it('bloqueia produção com dados obrigatórios pendentes (fotos e links das plataformas)', () => {
+    try {
+      assertReadyForLaunch(real);
+      expect.unreachable();
+    } catch (err) {
+      expect(err).toBeInstanceOf(LaunchBlockedError);
+      const fields = (err as LaunchBlockedError).items.map((i) => i.field);
+      expect(fields).toEqual(['hero.image', 'gallery', 'booking.booking', 'booking.airbnb']);
+    }
   });
 
   it('libera quando os obrigatórios estão preenchidos', () => {

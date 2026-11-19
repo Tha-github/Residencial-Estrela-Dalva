@@ -23,11 +23,12 @@ describe('contraste dos tokens (WCAG 2.2 AA)', () => {
     });
   }
 
-  it('texto branco sobre o véu do hero ≥ 4.5 mesmo com foto totalmente branca', () => {
-    const alpha = Number(/\/\s*([\d.]+)\)/.exec(tokens.get('--scrim-strong') ?? '')?.[1]);
-    const black = (tokens.get('--black-rgb') ?? '').split(/\s+/).map(Number) as [number, number, number];
+  // Pior caso: véu/vidro sobre uma foto totalmente branca.
+  it.each(['--scrim-strong', '--glass-bg'])('texto branco sobre %s ≥ 4.5 mesmo com foto branca', (token) => {
+    const alpha = Number(/\/\s*([\d.]+)\)/.exec(tokens.get(token) ?? '')?.[1]);
+    const sea = (tokens.get('--sea-rgb') ?? '').split(/\s+/).map(Number) as [number, number, number];
     expect(alpha).toBeGreaterThan(0);
-    const worstCase = blend(black, alpha, [255, 255, 255]);
+    const worstCase = blend(sea, alpha, [255, 255, 255]);
     expect(contrastRatio(rgb('--color-on-image'), worstCase)).toBeGreaterThanOrEqual(4.5);
   });
 });

@@ -2,25 +2,40 @@
 /**
  * Composição da página inicial a partir do conteúdo validado.
  * Usada por pages/index.astro (conteúdo real) e pela prévia de desenvolvimento
- * (pages/dev/[page].astro, com dados de exemplo rotulados).
+ * (dev-pages/previa-completa.astro, com dados de exemplo rotulados).
  *
- * Ordem: hero → apresentação → fotos → diferenciais → informações →
- * localização → reservas → contato. Seção sem dado confirmado não é renderizada.
+ * Ordem (pensada para um loft): banner → informações rápidas → o loft →
+ * fotos → acomodação → comodidades → localização → experiência →
+ * informações práticas → reservas → dúvidas.
+ * Seção sem dado confirmado não é renderizada; na prévia do cliente, os
+ * espaços pendentes aparecem como quadros tracejados (nunca links falsos).
  */
 import Footer from './layout/Footer.astro';
 import Header from './layout/Header.astro';
 import MobileBookingBar from './layout/MobileBookingBar.astro';
-import AboutSection from './sections/AboutSection.astro';
+import AmenitiesSection from './sections/AmenitiesSection.astro';
 import BookingSection from './sections/BookingSection.astro';
-import ContactSection from './sections/ContactSection.astro';
+import ExperienceSection from './sections/ExperienceSection.astro';
+import FaqSection from './sections/FaqSection.astro';
 import GallerySection from './sections/GallerySection.astro';
 import Hero from './sections/Hero.astro';
-import HighlightsSection from './sections/HighlightsSection.astro';
 import LocationSection from './sections/LocationSection.astro';
+import LoftSection from './sections/LoftSection.astro';
 import PracticalSection from './sections/PracticalSection.astro';
+import QuickFacts from './sections/QuickFacts.astro';
+import SleepingSection from './sections/SleepingSection.astro';
 import PendingContent from './dev/PendingContent.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getBookingPlatforms, getNavItems, getSectionTones, getVisibility, SECTION_IDS } from '../lib/content/derive';
+import {
+  getBookingPlatforms,
+  getFaq,
+  getHeroHighlights,
+  getNavItems,
+  getPlatformSlots,
+  getSectionTones,
+  getVisibility,
+  SECTION_IDS,
+} from '../lib/content/derive';
 import { getPendingItems } from '../lib/content/pending';
 import type { Residencial } from '../lib/content/schema';
 
@@ -35,56 +50,73 @@ interface Props {
 
 const { content, pageTitle, description, noindex = false, clientPreview = false } = Astro.props;
 const visible = getVisibility(content);
-const display = Object.fromEntries(Object.entries(visible).map(([key, value]) => [key, value || clientPreview])) as typeof visible;
+// Na prévia do cliente, galeria aparece mesmo vazia (com quadros indicando as fotos).
+const display = { ...visible, gallery: visible.gallery || clientPreview, booking: visible.booking || clientPreview };
 const tone = getSectionTones(display);
+const toneOf = (key: keyof typeof tone) => (tone[key] === 'inverse' ? 'default' : tone[key]);
 const platforms = getBookingPlatforms(content);
 const nav = getNavItems(display);
-const { location, hero } = content;
-const locationLabel = `${location.beach} · ${location.city}, ${location.stateCode}`;
+const { hero, property } = content;
+const faq = getFaq(content);
 
 const bookingHref = `#${SECTION_IDS.booking}`;
-const heroCta = visible.booking || clientPreview ? { href: bookingHref, label: 'Ver opções de reserva' } : null;
-const heroSecondary = visible.about ? { href: `#${SECTION_IDS.about}`, label: 'Conhecer o residencial' } : null;
+const heroCta = display.booking ? { href: bookingHref, label: 'Consultar disponibilidade' } : null;
+const heroSecondary = display.loft ? { href: `#${SECTION_IDS.loft}`, label: `Conhecer o ${property.type.toLowerCase()}` } : null;
+const unitLabel = [property.type, property.unit.replace(/^Apartamento\s+/i, 'Apto '), property.reference].filter(Boolean).join(' · ');
 ---
 
 <BaseLayout title={pageTitle ?? content.name} description={description} noindex={noindex}>
-  <Header slot="header" name={content.name} nav={nav} cta={visible.booking || clientPreview ? { href: bookingHref, label: clientPreview && !visible.booking ? 'Opções de reserva' : 'Reservar' } : null} />
+  <Header slot="header" name={content.name} nav={nav} cta={display.booking ? { href: bookingHref, label: 'Reservar' } : null} />
 
-  {clientPreview && (
-    <div class="client-preview-banner" role="status">
-      Prévia para revisão: os quadros tracejados mostram onde entram fotos e informações ainda pendentes.
-    </div>
-  )}
+  {
+    clientPreview && (
+      <div class="client-preview-banner" role="status">
+        Prévia para revisão: os quadros tracejados mostram onde entram fotos e links ainda pendentes.
+      </div>
+    )
+  }
 
   <Hero
     name={content.name}
-    locationLabel={locationLabel}
+    unitLabel={unitLabel}
     title={hero.title}
     subtitle={hero.subtitle}
     image={hero.image}
+    highlights={getHeroHighlights(content)}
     cta={heroCta}
     secondaryCta={heroSecondary}
     clientPreview={clientPreview}
   />
+  <QuickFacts content={content} />
 
-  {display.about && <AboutSection content={content} tone={tone.about} />}
-  {display.gallery && <GallerySection images={content.gallery} tone={tone.gallery} clientPreview={clientPreview} />}
-  {display.highlights && <HighlightsSection highlights={content.highlights} tone={tone.highlights} />}
-  {display.practical && <PracticalSection content={content} tone={tone.practical} clientPreview={clientPreview} />}
-  {display.location && <LocationSection location={location} tone={tone.location} clientPreview={clientPreview} />}
-  {display.booking && <BookingSection name={content.name} platforms={platforms} tone={tone.booking} clientPreview={clientPreview} />}
-  {display.contact && <ContactSection contact={content.contact} tone={tone.contact} clientPreview={clientPreview} />}
+  {display.loft && <LoftSection content={content} tone={toneOf('loft')} clientPreview={clientPreview} />}
+  {display.gallery && <GallerySection images={content.gallery} tone={toneOf('gallery')} clientPreview={clientPreview} />}
+  {display.sleeping && <SleepingSection content={content} tone={toneOf('sleeping')} />}
+  {display.amenities && <AmenitiesSection amenities={content.amenities} tone={toneOf('amenities')} />}
+  {display.location && <LocationSection content={content} tone={toneOf('location')} clientPreview={clientPreview} />}
+  {display.experience && <ExperienceSection content={content} clientPreview={clientPreview} />}
+  {display.practical && <PracticalSection content={content} tone={toneOf('practical')} />}
+  {
+    display.booking && (
+      <BookingSection
+        content={content}
+        platforms={getPlatformSlots(content, clientPreview)}
+        tone={toneOf('booking')}
+      />
+    )
+  }
+  {display.faq && <FaqSection items={faq} contact={content.contact} tone={toneOf('faq')} />}
 
   {!clientPreview && <PendingContent items={getPendingItems(content)} />}
 
   <Footer slot="footer" content={content} nav={nav} platforms={platforms} />
-  {visible.booking && <MobileBookingBar slot="footer" />}
+  {display.booking && <MobileBookingBar slot="footer" />}
 </BaseLayout>
 
 <style>
   .client-preview-banner {
     padding: var(--space-3) var(--gutter);
-    background: var(--color-accent-soft);
+    background: var(--color-dev-notice-bg);
     color: var(--color-heading);
     font-size: var(--text-sm);
     text-align: center;

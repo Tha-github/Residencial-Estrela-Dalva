@@ -52,7 +52,7 @@ O conceito vem do **nome** do residencial. Não é uma afirmação sobre o imóv
 
 ## 3. Tipografia
 
-- **Instrument Serif**: títulos e nome do residencial. Um peso (400) mais itálico. É uma serifa editorial e condensada, que dá voz sem ficar pesada. O itálico é usado com parcimônia, para dar ênfase em títulos.
+- **Newsreader** (mesma do Residencial Ametista): títulos, pesos 400/500 e itálico 400. O itálico dá ênfase a um trecho de cada título, como no Ametista. Ver D13 em DECISOES.md.
 - **Figtree**: texto e interface. Fonte variável com pesos de 400 a 600, aberta, legível em tamanhos pequenos e com cobertura completa do português.
 - **Hospedagem:** as fontes ficam no próprio site, a partir de pacotes npm com versão fixa. Não há chamada ao Google Fonts, o que ajuda na privacidade, na CSP e na performance. O Astro gera uma fonte de fallback com métricas ajustadas, o que reduz o CLS, e faz preload só do que aparece acima da dobra. São cerca de 62 KB no total.
 - **Escala fluida:** de razão ~1,25 no mobile a ~1,33 no desktop (`--text-xs` … `--text-display`). Há um único H1 por página, o nome do residencial. H2 em serifa. H3 e H4 em sans 600.

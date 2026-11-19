@@ -57,15 +57,15 @@ const label = (i: number, img: Image) =>
   `Ampliar foto ${i + 1} de ${count}${img.alt ? `: ${img.alt}` : ''}`;
 ---
 
-<Section id={SECTION_IDS.gallery} eyebrow="Galeria" title="Fotos do residencial" width="wide" tone={tone}>
+<Section id={SECTION_IDS.gallery} eyebrow="Galeria" title="Fotos do *loft*" width="wide" tone={tone}>
   {count === 0 && clientPreview ? (
-    <div class="gallery-preview" aria-label="Espaços reservados para fotos">
-      <PreviewPlaceholder kind="photo" shape="wide" label="Foto principal da galeria" />
+    <div class="gallery-preview" role="group" aria-label="Espaços reservados para fotos">
+      <PreviewPlaceholder kind="photo" shape="wide" label="Vista geral do loft (dois níveis)" />
       <PreviewPlaceholder kind="photo" label="Fachada ou chegada" />
-      <PreviewPlaceholder kind="photo" label="Sala e cozinha" />
-      <PreviewPlaceholder kind="photo" label="Quarto ou mezanino" />
-      <PreviewPlaceholder kind="photo" label="Banheiro" />
-      <PreviewPlaceholder kind="photo" label="Terraço ou área externa" />
+      <PreviewPlaceholder kind="photo" label="Ambientes integrados do piso inferior" />
+      <PreviewPlaceholder kind="photo" label="Mezanino" />
+      <PreviewPlaceholder kind="photo" label="Cozinha" />
+      <PreviewPlaceholder kind="photo" label="Área externa com churrasqueira" />
     </div>
   ) : <div class="gallery-root" data-gallery>
     <ul class:list={['gallery', `gallery--n${layout}`]} role="list">
@@ -474,12 +474,12 @@ const label = (i: number, img: Image) =>
     margin: 0;
     padding: 0;
     border: 0;
-    background: rgb(var(--black-rgb) / 0.94);
+    background: rgb(var(--sea-rgb) / 0.95);
     color: var(--white);
   }
 
   .lightbox::backdrop {
-    background: rgb(var(--black-rgb) / 0.94);
+    background: rgb(var(--sea-rgb) / 0.95);
   }
 
   :global(html.is-lightbox-open) {

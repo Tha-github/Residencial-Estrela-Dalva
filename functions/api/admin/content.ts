@@ -18,7 +18,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env }) => {
   const parsed = residencialSchema.safeParse(input); if (!parsed.success) return json({error:'Revise os campos informados.', fields:parsed.error.issues.map(i=>`${i.path.join('.')}: ${i.message}`)},400);
   const current = await getContent(env) as Residencial, next = parsed.data as Residencial;
   // Identidade e estrutura geral são fixas. O painel não altera nome, localização, nem cria grupos/campos.
-  if (next.name !== current.name || next.location.beach !== current.location.beach || next.location.city !== current.location.city || next.location.state !== current.location.state || next.location.stateCode !== current.location.stateCode || next.location.address !== current.location.address || next.highlights.length !== current.highlights.length || next.highlights.some((h,i)=>h.icon!==current.highlights[i]?.icon)) return json({error:'Campo fora do escopo editável.'},400);
+  if (next.name !== current.name || next.location.beach !== current.location.beach || next.location.city !== current.location.city || next.location.state !== current.location.state || next.location.stateCode !== current.location.stateCode || next.location.address !== current.location.address || next.property.unit !== current.property.unit || next.property.reference !== current.property.reference || next.features.length !== current.features.length || next.features.some((h,i)=>h.icon!==current.features[i]?.icon)) return json({error:'Campo fora do escopo editável.'},400);
   const clean = (value: unknown): boolean => {
     if(typeof value==='string'){
       if(value.length>2048||/[<>]/.test(value))return false;

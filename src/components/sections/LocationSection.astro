@@ -1,93 +1,332 @@
 ---
 /**
- * Localização com link do Google Maps validado (sem iframe: mapa embutido é
- * pesado e carrega cookies de terceiros — um link leve resolve).
+ * Localização: as duas distâncias informadas pelo proprietário.
+ * - Régua proporcional: loft no zero e cada destino na sua distância. Mostra
+ *   proximidade sem sugerir direção, rua ou coordenada (nenhuma foi confirmada).
+ * - Um bloco por percurso, com o que há por perto.
+ * - Link do Google Maps só quando informado (sem mapa embutido: mais leve e
+ *   sem cookies de terceiros; a CSP também não permite iframes).
  */
-import { SECTION_IDS } from '../../lib/content/derive';
+import { formatDistance, joinList, photoOf, SECTION_IDS } from '../../lib/content/derive';
 import type { Residencial } from '../../lib/content/schema';
 import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
+import PhotoSlot from '../ui/PhotoSlot.astro';
 import PreviewPlaceholder from '../ui/PreviewPlaceholder.astro';
 import Section from '../ui/Section.astro';
 
 interface Props {
-  location: Residencial['location'];
-  tone?: 'default' | 'alt';
+  content: Residencial;
+  tone: 'default' | 'alt';
   clientPreview?: boolean;
 }
 
-const { location, tone, clientPreview = false } = Astro.props;
+const { content, tone, clientPreview = false } = Astro.props;
+const { location, distances, property } = content;
+const sorted = [...distances].sort((a, b) => a.meters - b.meters);
+const max = Math.max(...sorted.map((d) => d.meters), 1);
+// Escala arredondada para cima (ex.: 450 → 500 m) para a régua respirar.
+const scale = Math.ceil((max * 1.08) / 100) * 100;
+const nearby = location.nearby.map((n, i) => (i === 0 ? n : n.toLowerCase()));
+const regionPhoto = photoOf(content, 'regiao');
 ---
 
-<Section id={SECTION_IDS.location} eyebrow="Localização" title={`${location.beach}, ${location.city}`} tone={tone}>
-  <div class="location">
-    <div class="location__pin" aria-hidden="true">
-      <Icon name="map-pin" size={28} />
-    </div>
-    <div>
-      {location.address && <address class="location__address">{location.address}</address>}
-      {clientPreview && !location.address && <p class="location__pending">Endereço completo a confirmar</p>}
-      <p class="location__region">
-        {location.beach} · {location.city}, {location.state}
-      </p>
+<Section
+  id={SECTION_IDS.location}
+  eyebrow={`${location.neighborhood} · ${location.city}, ${location.stateCode}`}
+  title="Tudo por perto, para aproveitar *melhor suas férias*."
+  intro={`Aproveite a praticidade de estar próximo ao mar e ao Centrinho dos Ingleses, com acesso fácil a ${joinList(location.nearby.map((n) => n.toLowerCase()))}.`}
+  tone={tone}
+>
+  {
+    sorted.length > 0 && (
+      <figure class="ruler reveal" aria-label={`Distâncias aproximadas a partir do ${property.type.toLowerCase()}`}>
+        <div class="ruler__track">
+          <span class="ruler__origin" style="--at: 0%">
+            <span class="ruler__dot ruler__dot--origin">
+              <Icon name="star" size={16} />
+            </span>
+            <span class="ruler__label">{property.type}</span>
+          </span>
+          {sorted.map((d, i) => (
+            <span
+              class:list={['ruler__stop', i % 2 === 0 ? 'ruler__stop--top' : 'ruler__stop--bottom']}
+              style={`--at: ${((d.meters / scale) * 100).toFixed(2)}%`}
+            >
+              <span class="ruler__dot">
+                <Icon name={d.kind === 'praia' ? 'waves' : 'bag'} size={16} />
+              </span>
+              <span class="ruler__label">
+                <strong>{formatDistance(d.meters)}</strong> {d.place}
+              </span>
+            </span>
+          ))}
+        </div>
+        <figcaption class="ruler__caption">Distâncias aproximadas informadas pelo proprietário. A régua mostra a proporção entre elas, não a direção.</figcaption>
+      </figure>
+    )
+  }
+
+  <div class="places">
+    {
+      sorted.map((d) => (
+        <article class:list={['place', `place--${d.kind}`, 'reveal']}>
+          <span class="place__icon">
+            <Icon name={d.kind === 'praia' ? 'waves' : 'bag'} size={26} />
+          </span>
+          <p class="place__distance">
+            <span class="numeral">{d.meters}</span>
+            <span class="place__unit">metros</span>
+          </p>
+          <h3 class="place__name">{d.place}</h3>
+          <p class="place__text">
+            {d.kind === 'praia'
+              ? `Aproximadamente ${d.meters} metros entre o ${property.type.toLowerCase()} e o mar.`
+              : nearby.length > 0
+                ? `Aproximadamente ${d.meters} metros. ${joinList(nearby)} por perto.`
+                : `Aproximadamente ${d.meters} metros.`}
+          </p>
+        </article>
+      ))
+    }
+
+    <div class="place place--aside reveal">
       {
-        location.mapsUrl && (
-          <Button href={location.mapsUrl} external variant="secondary">
-            Abrir no Google Maps
-          </Button>
+        (regionPhoto || clientPreview) && (
+          <PhotoSlot
+            image={regionPhoto}
+            pendingLabel="Praia dos Ingleses ou Centrinho (foto real da região)"
+            clientPreview={clientPreview}
+            sizes="(min-width: 1024px) 30vw, 90vw"
+            ratio="4 / 3"
+          />
         )
       }
-      {clientPreview && !location.mapsUrl && <PreviewPlaceholder shape="inline" label="Link do Google Maps" />}
+      {location.address && <address class="place__address">{location.address}</address>}
+      {
+        location.mapsUrl ? (
+          <Button href={location.mapsUrl} variant="secondary" external icon="map-pin">
+            Ver localização no Google Maps
+          </Button>
+        ) : (
+          clientPreview && (
+            <PreviewPlaceholder label="Link do Google Maps do imóvel" shape="inline" />
+          )
+        )
+      }
     </div>
   </div>
 </Section>
 
 <style>
-  .location {
-    display: flex;
-    gap: var(--space-5);
-    align-items: flex-start;
-    max-width: var(--width-prose);
-    padding: var(--space-6);
+  /* ── Régua de distâncias ────────────────────────────────── */
+  .ruler {
+    margin: 0 0 var(--space-7);
+    padding: var(--space-8) var(--space-5) var(--space-5);
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
   }
 
-  .location__pin {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-pill);
-    background: var(--color-accent-soft);
-    color: var(--color-accent);
+  @media (min-width: 768px) {
+    .ruler {
+      padding: var(--space-8) var(--space-8) var(--space-5);
+    }
   }
 
-  .location__address {
-    margin-bottom: var(--space-2);
-    font-style: normal;
-    font-size: var(--text-lg);
+  .ruler__track {
+    position: relative;
+    height: 7rem;
+    margin-inline: var(--space-4) var(--space-6);
+  }
+
+  /* Linha tracejada do percurso */
+  .ruler__track::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    border-top: 2px dashed var(--color-border-strong);
+  }
+
+  .ruler__origin,
+  .ruler__stop {
+    position: absolute;
+    top: 50%;
+    left: var(--at);
+    display: grid;
+    justify-items: center;
+    transform: translate(-50%, -50%);
+  }
+
+  .ruler__dot {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    box-shadow: 0 0 0 6px var(--color-surface);
+  }
+
+  .ruler__dot--origin {
+    background: var(--color-highlight);
+    color: var(--white);
+  }
+
+  .ruler__label {
+    position: absolute;
+    width: max-content;
+    max-width: 11rem;
+    font-size: var(--text-sm);
+    line-height: var(--line-height-snug);
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+
+  .ruler__label strong {
+    display: block;
+    font-family: var(--font-display-stack);
+    font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
     color: var(--color-heading);
   }
 
-  .location__pending {
-    margin-bottom: var(--space-2);
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
+  .ruler__origin .ruler__label,
+  .ruler__stop--bottom .ruler__label {
+    top: calc(100% + var(--space-2));
   }
 
-  .location__region {
-    margin-bottom: var(--space-5);
+  .ruler__origin .ruler__label {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+  }
+
+  .ruler__stop--top .ruler__label {
+    bottom: calc(100% + var(--space-2));
+  }
+
+  .ruler__caption {
+    margin-top: var(--space-4);
+    font-size: var(--text-xs);
     color: var(--color-text-muted);
   }
 
   @media (max-width: 479.98px) {
-    .location {
-      flex-direction: column;
-      padding: var(--space-5);
+    .ruler__label {
+      max-width: 7.5rem;
+      font-size: var(--text-xs);
     }
+    .ruler__track {
+      height: 8rem;
+    }
+  }
+
+  /* ── Blocos dos percursos ───────────────────────────────── */
+  .places {
+    display: grid;
+    gap: var(--grid-gap);
+  }
+
+  @media (min-width: 768px) {
+    .places {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .place--aside {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .places {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .place--aside {
+      grid-column: auto;
+    }
+  }
+
+  .place {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+  }
+
+  .place--praia {
+    border-color: transparent;
+    background:
+      radial-gradient(80% 70% at 100% 0%, rgb(227 162 124 / 0.25), transparent 70%),
+      var(--sea-900);
+    color: var(--sand-50);
+  }
+
+  .place--praia .numeral,
+  .place--praia .place__name {
+    color: var(--white);
+  }
+
+  .place--praia .place__text,
+  .place--praia .place__unit {
+    color: var(--sea-200);
+  }
+
+  .place--praia .place__icon {
+    background: rgb(255 255 255 / 0.12);
+    color: var(--terra-300);
+  }
+
+  .place--aside {
+    padding: 0;
+    border: 0;
+    background: none;
+    gap: var(--space-4);
+  }
+
+  .place__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  .place__distance {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin: var(--space-3) 0 0;
+  }
+
+  .place__distance .numeral {
+    font-size: clamp(3.5rem, 2.5rem + 4vw, 5.5rem);
+  }
+
+  .place__unit {
+    font-family: var(--font-display-stack);
+    font-size: var(--text-xl);
+    font-style: italic;
+    color: var(--color-text-muted);
+  }
+
+  .place__name {
+    margin: 0;
+    font-size: var(--text-xl);
+  }
+
+  .place__text {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+
+  .place__address {
+    font-style: normal;
   }
 </style>

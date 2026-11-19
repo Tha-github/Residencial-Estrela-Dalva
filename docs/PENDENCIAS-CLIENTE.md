@@ -1,63 +1,60 @@
-# Pendências — informações do cliente
+# Pendências — informações e fotos do proprietário
 
 Itens necessários para publicar. Nenhum deles será preenchido por suposição.
-Situação em 16/11/2026.
+Situação em 18/11/2026.
 
-Na prévia pública do GitHub Pages, as seções sem dados já aparecem com espaços marcados para fotos, capacidade/horários, comodidades, Maps, links das plataformas e contato. Esses marcadores servem apenas para revisão; não são links ativos nem afirmações sobre o imóvel. O site segue `noindex` até aprovação e preenchimento dos dados obrigatórios.
+Na prévia pública do GitHub Pages, o que falta aparece em quadros tracejados (fotos) ou como "Pendente de configuração" (links das plataformas). Esses marcadores servem apenas para revisão: não são links ativos nem afirmações sobre o imóvel. O site segue `noindex` até a aprovação e o preenchimento dos dados obrigatórios. O build de produção é bloqueado enquanto faltar algum item obrigatório.
+
+## Já confirmado e publicado na prévia
+
+- Loft — Apartamento 104, identificação adicional Nº 31 (não é exibida como endereço)
+- Capacidade: até 4 pessoas. Mezanino com cama de casal e cama de solteiro; piso inferior com sofá-cama
+- Distâncias aproximadas: 450 m da Praia dos Ingleses e 200 m do Centrinho dos Ingleses
+- Por perto: mercados, restaurantes, bares, shopping e farmácias
+- Comodidades: cozinha completa (fogão a gás, micro-ondas, air fryer, geladeira, sanduicheira, liquidificador, jarra elétrica, utensílios), ar-condicionado, ventilador, churrasqueira e máquina de lavar roupa
+- Check-in a partir das 14h; check-out até as 11h
+- Reserva direta: WhatsApp +55 (48) 99947-1321 (abre conversa com mensagem inicial) e e-mail pereimamarcelo@gmail.com
 
 ## Obrigatórios para o lançamento
 
-- [ ] **Fotos reais do imóvel**, em alta resolução: fachada, sala, cozinha, quarto/mezanino, banheiro, terraço e detalhes
-- [ ] **Foto principal para o topo do site** (hero)
-- [ ] **Descrição do imóvel**, aprovada pelo cliente
-- [ ] **Capacidade máxima de hóspedes.** A prévia diz 1 quarto com cama de casal e uma de solteiro, mas o formulário aceita até 4 adultos e 3 crianças.
-- [ ] **Número de quartos, camas e banheiros**
-- [ ] **Comodidades confirmadas**, incluindo se existe **pátio externo** além do terraço
-- [ ] **Horários de check-in e check-out**
-- [ ] **Links dos anúncios** no Booking.com, Airbnb e Decolar
-- [ ] **Link do Google Maps do imóvel**, ou confirmação do pin. O CEP 88058-193 corresponde à "**Servidão** Maria Tomasia Cabral", e não à "Rua", como diz a prévia. As coordenadas da prévia caem nessa via, mas o número 31 não foi verificado.
-- [ ] **Domínio definitivo**
+- [ ] **Foto principal do banner**: horizontal, luminosa, de preferência uma vista ampla do loft mostrando o mezanino e os ambientes integrados. Ela é recortada na vertical no celular, então o assunto principal deve ficar no centro ou à direita.
+- [ ] **Fotos reais do loft** (galeria), indicando o que aparece em cada uma:
+  - vista geral mostrando os dois níveis
+  - ambientes integrados do piso inferior (aparece na seção "O loft")
+  - mezanino (aparece na seção "O loft")
+  - cozinha
+  - área externa com churrasqueira (aparece na seção "Experiência")
+  - fachada ou chegada
+  - banheiro e detalhes, se desejado
+- [ ] **Link do anúncio no Booking.com**
+- [ ] **Link do anúncio no Airbnb**
+- [ ] **Domínio definitivo** (com ou sem `www`)
 
-## SEO — domínio e aprovações pendentes
+## Opcionais (aparecem somente se fornecidos)
 
-- [ ] Confirmar o domínio HTTPS definitivo e a variante canônica (com ou sem `www`). O build de produção usa essa origem para canonical, Open Graph e sitemap; configurar redirect permanente da variante secundária e HTTP → HTTPS na hospedagem.
-- [ ] Aprovar title e meta description da página inicial junto com os textos do residencial já listados abaixo.
-- [ ] Enviar fotos reais e descrições do que aparece em cada imagem. Até lá, o compartilhamento social usa um card gráfico de marca, não uma foto do imóvel.
-- [ ] Após publicação no domínio, conferir resposta HTTP 200/404, redirects, canonical, robots, sitemap, favicon e dados estruturados em ferramentas de inspeção dos crawlers. Isso depende do domínio ativo e do conteúdo mínimo confirmado.
-- [ ] Se desejado, verificar o domínio no Google Search Console e enviar `sitemap.xml` após o lançamento.
-
-O site não instala manifest/PWA: não é uma aplicação instalável e isso não ajuda a navegação institucional atual.
+- [ ] **Foto real da região** (Praia dos Ingleses ou Centrinho), tirada pelo proprietário ou com direito de uso
+- [ ] **Link do Google Maps do imóvel**, ou confirmação do pin. Sem ele, a localização mostra só as distâncias. O CEP 88058-193 citado anteriormente corresponde à "Servidão" Maria Tomasia Cabral, e o número não foi verificado; por isso nenhum endereço é exibido.
+- [ ] **Endereço completo** para exibir no site
+- [ ] **Regras da casa**
+- [ ] **Link do anúncio na Decolar**, se ainda existir
+- [ ] **Instagram**
 
 ### Como enviar as fotos
 
 - **Originais:** os arquivos do celular ou da câmera, sem compressão de WhatsApp, sem filtro, sem marca d'água e sem texto.
-- **Foto do hero:** horizontal e luminosa. Ela precisa funcionar também cortada na vertical no celular.
-- **O que fotografar:** fachada ou chegada, sala, cozinha, quarto ou mezanino, banheiro, terraço ou área externa e detalhes. Só os ambientes que existem de fato.
-- **Para cada foto:** dizer o que aparece nela, para escrever a descrição acessível (alt). Indicar também se pode haver legenda.
+- **Para cada foto:** dizer o que aparece nela, para escrever a descrição acessível (alt).
+- **Só ambientes que existem de fato.** Nenhuma foto de banco de imagens ou de outro imóvel (inclusive do Residencial Ametista) será usada.
 
-## Opcionais (aparecem somente se fornecidos)
+## Textos para aprovação
 
-- [ ] Regras da casa
-- [ ] Endereço completo para exibir no site
-- [ ] Instagram
-- [ ] WhatsApp, com DDI e DDD
-- [ ] E-mail de contato
+Escritos só com dados confirmados. Ficam em `src/data/residencial.json`.
 
-## Textos para aprovação do cliente
+- [ ] Banner: "Seu refúgio em Florianópolis, pertinho de tudo." e a descrição do loft
+- [ ] Apresentação: "Um loft pensado para aproveitar cada momento" e os destaques
+- [ ] Experiência: os cinco momentos do dia (acordar, praia, Centrinho, descanso, churrasqueira)
+- [ ] Perguntas frequentes, geradas automaticamente a partir dos dados acima. Nenhuma política de cancelamento, animais, estacionamento, taxas, roupa de cama ou toalhas foi incluída. Se o proprietário quiser esses itens, precisa informá-los.
 
-Escritos só com dados confirmados: nome, Praia dos Ingleses, Florianópolis/SC, proximidade com o mar e reserva por plataformas externas. O cliente pode aprovar ou substituir. Ficam em `src/data/residencial.json`.
+## SEO após o domínio
 
-- [ ] **Frase do topo (hero):** "Perto do mar, no norte da Ilha de Santa Catarina."
-- [ ] **Apresentação:** título "Hospedagem na Praia dos Ingleses" e dois parágrafos.
-- [ ] **Diferenciais:** "Perto do mar" e "Norte da Ilha".
-  - Se o terraço e o pátio externo forem confirmados, entram como novos diferenciais.
-  - Se a distância até a praia for confirmada (a prévia fala em 450 m), pode substituir o texto genérico "fica próxima".
-
-## Decisões do cliente
-
-- [ ] **WhatsApp:** usar só um botão de contato (recomendado) ou o formulário de datas da prévia? O formulário não pode prometer disponibilidade.
-- [ ] **Avaliações do Booking:** autorizar a citação da nota com link para a fonte? Os depoimentos com nome de hóspede exigem cuidado.
-- [ ] **Nomes dos anfitriões** (Marcelo e Ângela): autorizar exibição?
-- [ ] **Informações a confirmar:**
-  - "Recepção 24 horas" contradiz "chegada combinada com o anfitrião";
-  - distâncias de 450 m até a praia e 38 km até o aeroporto.
+- [ ] Conferir resposta HTTP 200/404, redirects, canonical, robots, sitemap, favicon e dados estruturados.
+- [ ] Se desejado, verificar o domínio no Google Search Console e enviar `sitemap.xml`.

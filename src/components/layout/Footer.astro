@@ -1,7 +1,7 @@
 ---
 /** Rodapé: marca, localização, navegação, plataformas e contato — só com dados existentes. */
 import type { BookingPlatform, NavItem } from '../../lib/content/derive';
-import { formatWhatsapp, instagramHandle, whatsappUrl } from '../../lib/content/derive';
+import { formatWhatsapp, instagramHandle, mailtoUrl, whatsappUrl } from '../../lib/content/derive';
 import type { Residencial } from '../../lib/content/schema';
 import Icon from '../ui/Icon.astro';
 
@@ -12,7 +12,7 @@ interface Props {
 }
 
 const { content, nav, platforms } = Astro.props;
-const { location, contact } = content;
+const { location, contact, property } = content;
 const hasContact = Boolean(contact.whatsapp || contact.instagram || contact.email);
 const year = new Date().getFullYear();
 ---
@@ -24,8 +24,12 @@ const year = new Date().getFullYear();
         <Icon name="star" size={14} class="footer__star" />
         {content.name}
       </p>
+      <p>
+        {property.type} · {property.unit}
+        {property.reference && <> · {property.reference}</>}
+      </p>
       {location.address && <address>{location.address}</address>}
-      <p>{location.beach} · {location.city}, {location.stateCode}</p>
+      <p>{location.neighborhood} · {location.city}, {location.stateCode}</p>
     </div>
 
     {
@@ -68,7 +72,7 @@ const year = new Date().getFullYear();
           <ul role="list">
             {contact.whatsapp && (
               <li>
-                <a href={whatsappUrl(contact.whatsapp)} target="_blank" rel="noopener noreferrer">
+                <a href={whatsappUrl(contact.whatsapp, contact.whatsappMessage)} target="_blank" rel="noopener noreferrer">
                   WhatsApp {formatWhatsapp(contact.whatsapp)}
                   <span class="visually-hidden">(abre em nova aba)</span>
                 </a>
@@ -84,7 +88,7 @@ const year = new Date().getFullYear();
             )}
             {contact.email && (
               <li>
-                <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                <a href={mailtoUrl(contact.email, `Hospedagem no ${content.name}`)}>{contact.email}</a>
               </li>
             )}
           </ul>
@@ -106,7 +110,7 @@ const year = new Date().getFullYear();
 <style>
   .site-footer {
     padding-block: var(--space-8) var(--space-6);
-    background: var(--sea-900);
+    background: var(--sea-950);
     color: rgb(255 255 255 / 0.82);
     font-size: var(--text-sm);
   }
@@ -160,7 +164,11 @@ const year = new Date().getFullYear();
   }
 
   .site-footer :global(.footer__star) {
-    color: var(--dawn-500);
+    color: var(--terra-300);
+  }
+
+  .footer__brand p {
+    margin: 0 0 var(--space-1);
   }
 
   .footer__brand address {

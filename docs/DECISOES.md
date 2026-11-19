@@ -53,7 +53,7 @@ Registro curto das decisões tomadas e por quê. Atualize ao mudar qualquer uma.
 
 ## D9 — Fontes auto-hospedadas (Prompt 3)
 
-- **Como:** API de fontes do Astro com provider `local`, apontando para os `.woff2` dos pacotes `@fontsource/instrument-serif` e `@fontsource-variable/figtree` (versões fixas).
+- **Como:** API de fontes do Astro com provider `local`, apontando para os `.woff2` dos pacotes `@fontsource/newsreader` e `@fontsource-variable/figtree` (versões fixas).
 - **Por que não o provider `npm`:** com `remote: false`, no Astro 7.4.12, ele gera URLs `file://` que o leitor de fontes do Astro não lê, e o build falha.
 - **Ganhos:** sem requisição a terceiros, com fallback métrico (menos CLS) e preload seletivo.
 
@@ -101,3 +101,14 @@ Registro curto das decisões tomadas e por quê. Atualize ao mudar qualquer uma.
 - **Isolamento:** projeto, D1, R2 e Access separados do Residencial Ametista.
 
 Os arquivos de Functions/D1/R2 permanecem visíveis no repositório como proposta anterior, mas não são empacotados nem funcionam no GitHub Pages. A rota `/admin/` explica a edição via repositório. Veja [docs/PAINEL-ADMIN.md](PAINEL-ADMIN.md).
+
+## D13 — Redesenho como loft e identidade da família Ametista (18/11/2026)
+
+- **Identidade:** cores (paleta "Areia, Mar e Grafite" com terracota pontual), fontes (Newsreader nos títulos, Figtree no texto), raios (6px nos botões, 12px nos cards) e estilo de título (azul-mar com trecho em itálico) passam a ser os mesmos do Residencial Ametista, do mesmo proprietário. A Instrument Serif foi removida.
+- **Diferença em relação ao Ametista:** composição própria. Banner em moldura arredondada sob navbar branca, com formas geométricas de vidro (losango, círculo, barra e a estrela de quatro pontas da marca) e painel de vidro com o texto. Seções desenhadas para um loft: corte estilizado com mezanino e piso inferior, régua de distâncias e linha do tempo de um dia.
+- **Modelo de conteúdo:** o esquema deixou de usar quartos/camas/banheiros/área e passou a descrever um loft: `property` (tipo, unidade, identificação "Nº 31", que não é endereço), `distances`, `sleeping` (por nível), `amenities` (por categoria), `features`, `experience` e `contact.whatsappMessage`.
+- **Fotos por seção:** os grupos da galeria (`integrado`, `mezanino`, `externa`, `regiao`...) escolhem a foto de cada seção. Sem foto: quadro tracejado na prévia, nada no site publicado.
+- **FAQ derivada:** `getFaq()` gera perguntas e respostas só a partir dos dados confirmados. Sem dado, sem pergunta; nenhuma política, taxa ou regra suposta.
+- **Reservas:** Booking.com e Airbnb são obrigatórios para produção; na prévia aparecem como "pendente de configuração", sem link. Reserva direta (WhatsApp com mensagem inicial e e-mail com assunto) fica abaixo, com peso visual menor. Google Maps passou a opcional.
+- **Legibilidade do banner:** o painel de vidro tem opacidade ≥ 0,62, o que garante 4,5:1 para texto branco mesmo sobre foto totalmente branca (teste unitário de contraste + E2E em 4 larguras).
+- **CLS:** o itálico da Newsreader é pré-carregado, porque aparece no título do banner. Sem isso, a troca de fonte refluía o título (CLS 0,063 em 360px).

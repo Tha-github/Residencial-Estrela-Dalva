@@ -1,3 +1,4 @@
+import { photoOf } from './derive';
 import type { Residencial } from './schema';
 
 export interface PendingItem {
@@ -10,30 +11,27 @@ export interface PendingItem {
 const isMissing = (v: unknown) => v === null || (Array.isArray(v) && v.length === 0);
 
 /**
- * Lista o que ainda falta confirmar com o cliente.
+ * Lista o que ainda falta o proprietário enviar ou confirmar.
  * Exibido apenas em desenvolvimento; nunca no site publicado.
  */
 export function getPendingItems(c: Residencial): PendingItem[] {
   const checks: Array<[unknown, string, string, boolean]> = [
-    [c.hero.image, 'hero.image', 'Foto real para o hero', true],
-    [c.gallery, 'gallery', 'Fotos reais do imóvel', true],
-    [c.about.paragraphs, 'about.paragraphs', 'Descrição do residencial', true],
+    [c.hero.image, 'hero.image', 'Foto real para o banner principal', true],
+    [c.gallery, 'gallery', 'Fotos reais do loft', true],
+    [photoOf(c, 'mezanino'), 'gallery[group=mezanino]', 'Foto do mezanino', false],
+    [photoOf(c, 'integrado'), 'gallery[group=integrado]', 'Foto dos ambientes integrados do piso inferior', false],
+    [photoOf(c, 'externa'), 'gallery[group=externa]', 'Foto da área externa com churrasqueira', false],
+    [photoOf(c, 'regiao'), 'gallery[group=regiao]', 'Foto da Praia dos Ingleses ou do Centrinho', false],
+    [c.about.paragraphs, 'about.paragraphs', 'Descrição do loft', true],
     [c.practical.maxGuests, 'practical.maxGuests', 'Capacidade máxima de hóspedes', true],
-    [c.practical.bedrooms, 'practical.bedrooms', 'Número de quartos', true],
-    [c.practical.beds, 'practical.beds', 'Número de camas', true],
-    [c.practical.bathrooms, 'practical.bathrooms', 'Número de banheiros', true],
-    [c.practical.amenities, 'practical.amenities', 'Comodidades confirmadas', true],
     [c.practical.checkIn, 'practical.checkIn', 'Horário de check-in', true],
     [c.practical.checkOut, 'practical.checkOut', 'Horário de check-out', true],
     [c.practical.rules, 'practical.rules', 'Regras da casa', false],
-    [c.location.mapsUrl, 'location.mapsUrl', 'Link do Google Maps do imóvel', true],
-    [c.location.address, 'location.address', 'Endereço oficial confirmado', false],
+    [c.location.mapsUrl, 'location.mapsUrl', 'Link do Google Maps do imóvel', false],
+    [c.location.address, 'location.address', 'Endereço completo para exibir', false],
     [c.booking.booking, 'booking.booking', 'Link do anúncio no Booking.com', true],
     [c.booking.airbnb, 'booking.airbnb', 'Link do anúncio no Airbnb', true],
-    [c.booking.decolar, 'booking.decolar', 'Link do anúncio na Decolar', true],
     [c.contact.instagram, 'contact.instagram', 'Instagram', false],
-    [c.contact.whatsapp, 'contact.whatsapp', 'WhatsApp', false],
-    [c.contact.email, 'contact.email', 'E-mail de contato', false],
   ];
 
   return checks

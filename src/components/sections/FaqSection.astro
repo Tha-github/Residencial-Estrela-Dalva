@@ -1,0 +1,109 @@
+---
+/**
+ * Dúvidas frequentes — perguntas e respostas geradas por getFaq() a partir
+ * dos dados confirmados (nada de políticas, taxas ou regras supostas).
+ * <details>/<summary>: acessível e funcional sem JavaScript.
+ */
+import { formatWhatsapp, SECTION_IDS, whatsappUrl, type FaqItem } from '../../lib/content/derive';
+import type { Residencial } from '../../lib/content/schema';
+import Icon from '../ui/Icon.astro';
+import Section from '../ui/Section.astro';
+
+interface Props {
+  items: FaqItem[];
+  contact: Residencial['contact'];
+  tone: 'default' | 'alt';
+}
+
+const { items, contact, tone } = Astro.props;
+---
+
+<Section id={SECTION_IDS.faq} eyebrow="Dúvidas frequentes" title="Perguntas *sobre a estadia*" tone={tone}>
+  <div class="faq">
+    <div class="faq__list">
+      {
+        items.map((item, i) => (
+          <details class="faq__item" open={i === 0}>
+            <summary>
+              <span>{item.question}</span>
+              <Icon name="chevron-down" size={20} class="faq__chevron" />
+            </summary>
+            <p>{item.answer}</p>
+          </details>
+        ))
+      }
+    </div>
+    {
+      contact.whatsapp && (
+        <p class="faq__more">
+          Não encontrou sua dúvida?{' '}
+          <a href={whatsappUrl(contact.whatsapp, contact.whatsappMessage)} target="_blank" rel="noopener noreferrer">
+            Fale com o proprietário pelo WhatsApp {formatWhatsapp(contact.whatsapp)}
+            <span class="visually-hidden">(abre em nova aba)</span>
+          </a>
+          .
+        </p>
+      )
+    }
+  </div>
+</Section>
+
+<style>
+  .faq {
+    max-width: 52rem;
+  }
+
+  .faq__list {
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  .faq__item {
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: var(--tap-target);
+    padding: var(--space-4) 0;
+    font-family: var(--font-display-stack);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-snug);
+    color: var(--color-title);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary:hover {
+    color: var(--color-accent-hover);
+  }
+
+  summary :global(.faq__chevron) {
+    flex: none;
+    color: var(--color-highlight);
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .faq__item[open] summary :global(.faq__chevron) {
+    transform: rotate(180deg);
+  }
+
+  .faq__item p {
+    max-width: var(--width-prose);
+    margin: 0;
+    padding: 0 var(--space-6) var(--space-5) 0;
+    color: var(--color-text-muted);
+  }
+
+  .faq__more {
+    margin-top: var(--space-6);
+    color: var(--color-text-muted);
+  }
+</style>

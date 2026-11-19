@@ -5,7 +5,7 @@
 ## O que já está implementado
 
 - Astro gera imagens responsivas em AVIF/WebP com fallback, dimensões explícitas e lazy loading nas miniaturas. A imagem do hero recebe prioridade alta e não usa lazy loading.
-- Fontes Figtree e Instrument Serif são locais; não há requisição a CDN de fontes. Não há mapa incorporado nem scripts de terceiros. A localização usa link leve para Google Maps.
+- Fontes Figtree e Newsreader são locais; não há requisição a CDN de fontes. Não há mapa incorporado nem scripts de terceiros. A localização usa link leve para Google Maps.
 - CSS e JavaScript são servidos como ativos locais; o build continua gerando `_headers`, mas GitHub Pages não interpreta essa configuração Cloudflare. Cache e compressão dependem do GitHub Pages e não foram medidos em produção.
 - Estilos definem foco visível, link para pular ao conteúdo, nomes acessíveis, alt textual para imagens, lightbox operável por teclado e regras para `prefers-reduced-motion`.
 

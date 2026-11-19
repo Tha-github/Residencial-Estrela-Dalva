@@ -1,47 +1,92 @@
 {
   "name": "Residencial Estrela Dalva",
+  "property": {
+    "type": "Loft",
+    "unit": "Apartamento 104",
+    "reference": "Nº 31"
+  },
   "location": {
+    "neighborhood": "Ingleses",
     "beach": "Praia dos Ingleses",
     "city": "Florianópolis",
     "state": "Santa Catarina",
     "stateCode": "SC",
     "address": null,
-    "mapsUrl": null
+    "mapsUrl": null,
+    "nearby": ["Mercados", "Restaurantes", "Bares", "Shopping", "Farmácias"]
   },
+  "distances": [
+    { "place": "Praia dos Ingleses", "meters": 450, "kind": "praia" },
+    { "place": "Centrinho dos Ingleses", "meters": 200, "kind": "comercio" }
+  ],
   "hero": {
-    "title": "Perto do mar, no norte da Ilha de Santa Catarina.",
-    "subtitle": null,
+    "title": "Seu refúgio em Florianópolis, *pertinho de tudo*.",
+    "subtitle": "Um loft aconchegante nos Ingleses, com espaço para até quatro pessoas, estrutura completa e tudo o que você precisa para aproveitar seus dias na praia.",
     "image": null
   },
   "about": {
-    "title": "Hospedagem na Praia dos Ingleses",
+    "title": "Um loft pensado para aproveitar *cada momento*",
     "paragraphs": [
-      "O Residencial Estrela Dalva fica na Praia dos Ingleses, bairro de praia no norte da Ilha de Santa Catarina, em Florianópolis. A proximidade com o mar é o ponto de partida da estadia: dias de praia e a região do norte da Ilha para conhecer no seu ritmo.",
-      "As reservas são feitas pelas plataformas em que o residencial está anunciado. Lá você consulta datas, valores e condições e conclui a reserva diretamente na plataforma escolhida."
+      "Um espaço aconchegante e funcional, com ambientes distribuídos em dois níveis, perfeito para quem deseja aproveitar Florianópolis com conforto e praticidade."
     ]
   },
-  "highlights": [
+  "features": [
+    { "title": "Ambientes integrados", "text": "Espaços conectados, com a leveza típica de um loft.", "icon": "layers" },
+    { "title": "Mezanino no piso superior", "text": "Uma cama de casal e uma de solteiro no nível de cima.", "icon": "levels" },
+    { "title": "Até quatro pessoas", "text": "Mezanino no piso superior e sofá-cama no piso inferior.", "icon": "users" },
+    { "title": "Cozinha completa", "text": "Fogão a gás, micro-ondas, air fryer, geladeira e utensílios.", "icon": "pot" },
+    { "title": "Área externa com churrasqueira", "text": null, "icon": "flame" }
+  ],
+  "sleeping": [
     {
-      "title": "Perto do mar",
-      "text": "A orla da Praia dos Ingleses fica próxima ao residencial, para que o mar faça parte da rotina da viagem.",
-      "icon": "waves"
+      "level": "Piso superior",
+      "detail": "Mezanino",
+      "beds": [
+        { "type": "casal", "label": "Uma cama de casal" },
+        { "type": "solteiro", "label": "Uma cama de solteiro" }
+      ]
     },
     {
-      "title": "Norte da Ilha",
-      "text": "Ingleses fica no norte de Florianópolis, uma base para conhecer também outras praias da região.",
-      "icon": "map-pin"
+      "level": "Piso inferior",
+      "detail": null,
+      "beds": [{ "type": "sofa-cama", "label": "Um sofá-cama" }]
     }
   ],
+  "amenities": [
+    {
+      "title": "Cozinha completa",
+      "icon": "pot",
+      "items": [
+        "Fogão a gás",
+        "Micro-ondas",
+        "Air fryer",
+        "Geladeira",
+        "Sanduicheira",
+        "Liquidificador",
+        "Jarra elétrica",
+        "Utensílios de cozinha"
+      ]
+    },
+    { "title": "Conforto", "icon": "snowflake", "items": ["Ar-condicionado", "Ventilador"] },
+    { "title": "Área externa", "icon": "flame", "items": ["Churrasqueira"] },
+    { "title": "Lavanderia", "icon": "washer", "items": ["Máquina de lavar roupa"] }
+  ],
+  "experience": {
+    "title": "Entre a praia e o conforto de *se sentir em casa*.",
+    "intro": "Perto do mar e do comércio, com um loft equipado para descansar entre um passeio e outro.",
+    "moments": [
+      { "title": "Acordar sem pressa", "text": "Comece o dia no loft e saia para aproveitar Florianópolis no seu ritmo.", "icon": "sun" },
+      { "title": "Caminhar até a praia", "text": "São cerca de 450 metros até a Praia dos Ingleses.", "icon": "walk" },
+      { "title": "Tudo à mão no Centrinho", "text": "Mercados, restaurantes, bares e farmácias a cerca de 200 metros.", "icon": "bag" },
+      { "title": "Voltar para descansar", "text": "Ar-condicionado, ventilador e um ambiente aconchegante para recarregar.", "icon": "home" },
+      { "title": "Churrasco na área externa", "text": "Encerre o dia na churrasqueira, ao ar livre.", "icon": "flame" }
+    ]
+  },
   "gallery": [],
   "practical": {
-    "maxGuests": null,
-    "bedrooms": null,
-    "beds": null,
-    "bathrooms": null,
-    "areaM2": null,
-    "checkIn": null,
-    "checkOut": null,
-    "amenities": [],
+    "maxGuests": 4,
+    "checkIn": "14:00",
+    "checkOut": "11:00",
     "rules": []
   },
   "booking": {
@@ -51,7 +96,8 @@
   },
   "contact": {
     "instagram": null,
-    "whatsapp": null,
-    "email": null
+    "whatsapp": "5548999471321",
+    "whatsappMessage": "Olá! Tenho interesse em conhecer a disponibilidade do Residencial Estrela Dalva para uma hospedagem.",
+    "email": "pereimamarcelo@gmail.com"
   }
 }

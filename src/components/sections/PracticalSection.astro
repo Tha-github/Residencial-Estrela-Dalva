@@ -1,183 +1,188 @@
 ---
-/** Comodidades e informações práticas — cada bloco só aparece com dado confirmado. */
-import { getKeyFacts, SECTION_IDS } from '../../lib/content/derive';
+/**
+ * Informações práticas: horários, capacidade e canais de contato direto.
+ * Só dados confirmados; regras da casa aparecem apenas se informadas.
+ */
+import { formatTime, formatWhatsapp, mailtoUrl, SECTION_IDS, whatsappUrl } from '../../lib/content/derive';
 import type { Residencial } from '../../lib/content/schema';
-import Icon from '../ui/Icon.astro';
-import PreviewPlaceholder from '../ui/PreviewPlaceholder.astro';
+import Icon, { type IconName } from '../ui/Icon.astro';
 import Section from '../ui/Section.astro';
 
 interface Props {
   content: Residencial;
-  tone?: 'default' | 'alt';
-  clientPreview?: boolean;
+  tone: 'default' | 'alt';
 }
 
-const { content, tone, clientPreview = false } = Astro.props;
-const p = content.practical;
-const facts = getKeyFacts(content);
-const hasSchedule = p.checkIn !== null || p.checkOut !== null;
-const missingFacts = [
-  [p.maxGuests, 'Capacidade máxima de hóspedes'],
-  [p.bedrooms, 'Número de quartos'],
-  [p.beds, 'Número e tipo de camas'],
-  [p.bathrooms, 'Número de banheiros'],
-  [p.areaM2, 'Área do imóvel'],
-  [p.checkIn, 'Horário de check-in'],
-  [p.checkOut, 'Horário de check-out'],
-].filter(([value]) => value === null).map(([, label]) => label as string);
+const { content, tone } = Astro.props;
+const { practical: p, contact } = content;
+
+const tiles: Array<{ icon: IconName; label: string; value: string; note: string }> = [];
+if (p.checkIn) tiles.push({ icon: 'log-in', label: 'Check-in', value: formatTime(p.checkIn), note: 'a partir das' });
+if (p.checkOut) tiles.push({ icon: 'log-out', label: 'Check-out', value: formatTime(p.checkOut), note: 'até as' });
+if (p.maxGuests) tiles.push({ icon: 'users', label: 'Capacidade', value: String(p.maxGuests), note: p.maxGuests === 1 ? 'pessoa' : 'pessoas, no máximo' });
+const hasDirect = Boolean(contact.whatsapp || contact.email);
+const emailSubject = `Hospedagem no ${content.name}`;
 ---
 
-<Section id={SECTION_IDS.practical} eyebrow="Antes de reservar" title="Comodidades e informações" tone={tone}>
-  <div class="practical">
+<Section id={SECTION_IDS.practical} eyebrow="Informações práticas" title="Bom saber *antes de chegar*" tone={tone}>
+  <ul class="info" role="list">
     {
-      (facts.length > 0 || hasSchedule || clientPreview) && (
-        <div class="block">
-          <h3>O imóvel</h3>
-          <dl class="specs">
-            {facts.map((f) => (
-              <div>
-                <dt>{f.label.replace(/^de /, '')}</dt>
-                <dd>{f.value}</dd>
-              </div>
-            ))}
-            {p.checkIn && (
-              <div>
-                <dt>Check-in</dt>
-                <dd>a partir das {p.checkIn}</dd>
-              </div>
-            )}
-            {p.checkOut && (
-              <div>
-                <dt>Check-out</dt>
-                <dd>até as {p.checkOut}</dd>
-              </div>
-            )}
-            {clientPreview && missingFacts.map((label) => (
-              <div>
-                <dt>{label}</dt>
-                <dd class="pending-value">A confirmar</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      )
+      tiles.map((t) => (
+        <li class="tile reveal">
+          <p class="tile__label">
+            <Icon name={t.icon} size={18} />
+            {t.label}
+          </p>
+          <p class="tile__value">
+            <span class="tile__note">{t.note}</span>
+            <span class="numeral">{t.value}</span>
+          </p>
+        </li>
+      ))
     }
-
     {
-      (p.amenities.length > 0 || clientPreview) && (
-        <div class="block">
-          <h3>Comodidades</h3>
-          <ul class="checklist" role="list">
-            {p.amenities.map((a) => (
+      hasDirect && (
+        <li class="tile tile--contact reveal">
+          <p class="tile__label">
+            <Icon name="message" size={18} />
+            Reserva direta
+          </p>
+          <p class="tile__lead">Disponível por WhatsApp e e-mail, diretamente com o proprietário.</p>
+          <ul class="tile__links" role="list">
+            {contact.whatsapp && (
               <li>
-                <Icon name="check" size={18} />
-                {a}
+                <a href={whatsappUrl(contact.whatsapp, contact.whatsappMessage)} target="_blank" rel="noopener noreferrer">
+                  WhatsApp {formatWhatsapp(contact.whatsapp)}
+                  <span class="visually-hidden">(abre em nova aba)</span>
+                </a>
               </li>
-            ))}
+            )}
+            {contact.email && (
+              <li>
+                <a href={mailtoUrl(contact.email, emailSubject)}>{contact.email}</a>
+              </li>
+            )}
           </ul>
-          {clientPreview && p.amenities.length === 0 && <PreviewPlaceholder shape="inline" label="Comodidades" />}
-        </div>
+        </li>
       )
     }
+  </ul>
 
-    {
-      (p.rules.length > 0 || clientPreview) && (
-        <div class="block">
-          <h3>Regras da casa</h3>
-          <ul class="rules">
-            {p.rules.map((r) => (
-              <li>{r}</li>
-            ))}
-          </ul>
-          {clientPreview && p.rules.length === 0 && <PreviewPlaceholder shape="inline" label="Regras da casa, se houver" />}
-        </div>
-      )
-    }
-  </div>
-  <p class="note">
-    Condições de cancelamento, valores e políticas da reserva aparecem na plataforma escolhida no momento da reserva.
-  </p>
+  {
+    p.rules.length > 0 && (
+      <div class="rules reveal">
+        <h3 class="rules__title">Regras da casa</h3>
+        <ul role="list">
+          {p.rules.map((r) => (
+            <li>
+              <Icon name="check" size={16} />
+              {r}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
 </Section>
 
 <style>
-  .practical {
+  .info {
     display: grid;
-    gap: var(--space-7) var(--grid-gap);
-  }
-
-  @media (min-width: 1024px) {
-    .practical {
-      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-    }
-  }
-
-  .block h3 {
-    padding-bottom: var(--space-3);
-    border-bottom: var(--border-width) solid var(--color-border-strong);
-  }
-
-  .specs {
-    margin: 0;
-  }
-
-  .specs div {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding-block: var(--space-3);
-    border-bottom: var(--border-width) solid var(--color-border);
-  }
-
-  .specs dt {
-    color: var(--color-text-muted);
-  }
-
-  .specs dt::first-letter {
-    text-transform: uppercase;
-  }
-
-  .specs dd {
-    margin: 0;
-    font-weight: var(--font-weight-medium);
-    text-align: right;
-  }
-
-  .specs .pending-value {
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-    font-weight: var(--font-weight-regular);
-  }
-
-  .checklist {
-    display: grid;
-    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    gap: var(--grid-gap);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .checklist li {
-    display: flex;
-    gap: var(--space-3);
-    align-items: flex-start;
+  @media (min-width: 1024px) {
+    .info {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.6fr);
+    }
   }
 
-  .checklist :global(.icon) {
-    margin-top: 0.2em;
-    color: var(--color-accent);
+  .tile {
+    display: grid;
+    align-content: space-between;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  .tile p {
+    margin: 0;
+  }
+
+  .tile__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--color-eyebrow);
+  }
+
+  .tile__value {
+    display: grid;
+  }
+
+  .tile__value .numeral {
+    font-size: clamp(3rem, 2.2rem + 3vw, 4.25rem);
+    color: var(--color-title);
+  }
+
+  .tile__note {
+    font-family: var(--font-display-stack);
+    font-style: italic;
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+  }
+
+  .tile--contact {
+    align-content: start;
+    gap: var(--space-3);
+    background: var(--color-accent-soft);
+    border-color: transparent;
+  }
+
+  .tile__lead {
+    color: var(--color-heading);
+  }
+
+  .tile__links {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tile__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-target);
+    font-weight: var(--font-weight-bold);
+    overflow-wrap: anywhere;
   }
 
   .rules {
+    margin-top: var(--space-7);
+  }
+
+  .rules ul {
     display: grid;
     gap: var(--space-2);
     margin: 0;
-    padding-left: var(--space-5);
+    padding: 0;
+    list-style: none;
   }
 
-  .note {
-    max-width: var(--width-prose);
-    margin-top: var(--space-7);
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
+  .rules li {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
   }
 </style>

@@ -43,16 +43,17 @@ const canonical = Astro.site && isProduction && !noindex
     {canonical && !noindex && description && <meta property="og:image" content={new URL(socialImage, Astro.site).href} />}
     {canonical && !noindex && description && <meta property="og:image:width" content="1200" />}
     {canonical && !noindex && description && <meta property="og:image:height" content="630" />}
-    {canonical && !noindex && description && <meta property="og:image:alt" content="Residencial Estrela Dalva, hospedagem na Praia dos Ingleses" />}
+    {canonical && !noindex && description && <meta property="og:image:alt" content="Residencial Estrela Dalva, loft com mezanino nos Ingleses, Florianópolis" />}
     {canonical && !noindex && description && <meta name="twitter:card" content="summary_large_image" />}
     {canonical && !noindex && description && <meta name="twitter:title" content={title} />}
     {canonical && !noindex && description && <meta name="twitter:description" content={description} />}
     {canonical && !noindex && description && <meta name="twitter:image" content={new URL(socialImage, Astro.site).href} />}
     <link rel="icon" type="image/svg+xml" href={`${baseUrl}favicon.svg`} />
-    <meta name="theme-color" content="#10313a" />
+    <meta name="theme-color" content="#0b3346" />
     <meta name="generator" content={Astro.generator} />
-    {/* Preload só do que aparece acima da dobra: display normal (não o itálico) e o texto. */}
-    <Font cssVariable="--font-display" preload={[{ style: 'normal' }]} />
+    {/* Preload do que aparece acima da dobra: o título do banner usa display normal E itálico
+        (sem o itálico, a troca de fonte reflui o título e gera CLS no mobile). */}
+    <Font cssVariable="--font-display" preload={[{ weight: 400, style: 'normal' }, { style: 'italic' }]} />
     <Font cssVariable="--font-sans" preload />
   </head>
   <body>

@@ -9,7 +9,7 @@ import Button from '../ui/Button.astro';
 ---
 
 <div class="booking-bar">
-  <Button href={`#${SECTION_IDS.booking}`} icon="arrow-right" class="booking-bar__btn">Ver opções de reserva</Button>
+  <Button href={`#${SECTION_IDS.booking}`} icon="arrow-right" class="booking-bar__btn">Consultar disponibilidade</Button>
 </div>
 
 <style>
@@ -18,7 +18,7 @@ import Button from '../ui/Button.astro';
     inset: auto 0 0;
     z-index: 40;
     padding: var(--space-3) var(--gutter) calc(var(--space-3) + env(safe-area-inset-bottom));
-    background: rgb(251 248 242 / 0.94);
+    background: rgb(250 247 242 / 0.94);
     backdrop-filter: blur(10px);
     border-top: var(--border-width) solid var(--color-border);
   }

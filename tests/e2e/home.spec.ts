@@ -1,17 +1,43 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('página real (dados confirmados)', () => {
-  test('mostra apenas seções com dados; sem CTA de reserva sem links', async ({ page }) => {
+  test('mostra as seções do loft; galeria só com fotos; plataformas só com link', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
-    await expect(page.locator('#o-residencial')).toBeVisible();
-    await expect(page.locator('#diferenciais')).toBeVisible();
-    for (const id of ['fotos', 'informacoes', 'localizacao', 'reservas', 'contato']) {
-      await expect(page.locator(`#${id}`)).toHaveCount(0);
+    for (const id of ['o-loft', 'acomodacao', 'comodidades', 'localizacao', 'experiencia', 'informacoes', 'reservas', 'duvidas']) {
+      await expect(page.locator(`#${id}`)).toBeVisible();
     }
-    // Nenhum link para #reservas quando a seção não existe.
-    expect(await page.evaluate(() => document.querySelectorAll('a[href="#reservas"]').length)).toBe(0);
+    await expect(page.locator('#fotos')).toHaveCount(0);
+    // Sem links das plataformas cadastrados: nenhum link para Booking.com ou Airbnb.
+    expect(await page.locator('a[href*="booking.com"], a[href*="airbnb."]').count()).toBe(0);
     // Nenhum link vazio.
     expect(await page.evaluate(() => document.querySelectorAll('a[href="#"], a:not([href])').length)).toBe(0);
+  });
+
+  test('acomodação deixa claro onde cada pessoa dorme', async ({ page }) => {
+    await page.goto('/');
+    const s = page.locator('#acomodacao');
+    await expect(s).toContainText('Piso superior');
+    await expect(s).toContainText('Mezanino');
+    await expect(s).toContainText('Uma cama de casal');
+    await expect(s).toContainText('Uma cama de solteiro');
+    await expect(s).toContainText('Piso inferior');
+    await expect(s).toContainText('Um sofá-cama');
+    await expect(s).toContainText('sem quartos separados');
+  });
+
+  test('reserva direta: WhatsApp com mensagem inicial e e-mail do proprietário', async ({ page }) => {
+    await page.goto('/');
+    const whatsapp = page.locator('#reservas a[href^="https://wa.me/5548999471321?text="]');
+    await expect(whatsapp).toHaveCount(1);
+    expect(decodeURIComponent((await whatsapp.getAttribute('href'))!.split('text=')[1]!)).toContain('Residencial Estrela Dalva');
+    await expect(page.locator('#reservas a[href^="mailto:pereimamarcelo@gmail.com"]')).toHaveCount(1);
+    await expect(page.locator('input, form')).toHaveCount(0);
+  });
+
+  test('banner leva às reservas e ao loft', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.hero').getByRole('link', { name: 'Consultar disponibilidade' })).toHaveAttribute('href', '#reservas');
+    await expect(page.locator('.hero').getByRole('link', { name: 'Conhecer o loft' })).toHaveAttribute('href', '#o-loft');
   });
 });
 

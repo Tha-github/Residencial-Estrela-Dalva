@@ -1,66 +1,110 @@
 ---
 /**
- * Reservas: links externos individuais para as plataformas.
- * Sem disponibilidade, preço, calendário ou checkout — a reserva é concluída
- * inteiramente na plataforma escolhida.
+ * Opções de reserva.
+ * - Plataformas (Booking.com, Airbnb e, se houver, Decolar): cartões principais.
+ *   Sem link cadastrado, na prévia, o cartão aparece como pendência e NÃO é link.
+ * - Reserva direta com o proprietário (WhatsApp com mensagem inicial e e-mail):
+ *   faixa abaixo, com boa visibilidade mas peso visual menor que as plataformas.
+ * Sem formulário, calendário, preço ou disponibilidade simulada.
  */
-import type { BookingPlatform } from '../../lib/content/derive';
-import { SECTION_IDS } from '../../lib/content/derive';
+import {
+  formatWhatsapp,
+  mailtoUrl,
+  SECTION_IDS,
+  whatsappUrl,
+  type BookingPlatform,
+} from '../../lib/content/derive';
+import type { Residencial } from '../../lib/content/schema';
 import Button from '../ui/Button.astro';
-import PreviewPlaceholder from '../ui/PreviewPlaceholder.astro';
+import Icon from '../ui/Icon.astro';
 import Section from '../ui/Section.astro';
 
 interface Props {
-  name: string;
+  content: Residencial;
   platforms: BookingPlatform[];
-  tone?: 'default' | 'alt';
-  clientPreview?: boolean;
+  tone: 'default' | 'alt';
 }
 
-const { name, platforms, tone, clientPreview = false } = Astro.props;
-const many = platforms.length > 1;
-const pendingPlatforms = [
-  ['Booking.com', platforms.some((platform) => platform.id === 'booking')],
-  ['Airbnb', platforms.some((platform) => platform.id === 'airbnb')],
-  ['Decolar', platforms.some((platform) => platform.id === 'decolar')],
-].filter(([, available]) => !available).map(([label]) => label as string);
-const intro = platforms.length > 0
-  ? 'Você será direcionado ao anúncio oficial do residencial. Datas disponíveis, valores, condições e pagamento são consultados e confirmados diretamente na plataforma.'
-  : 'Os links dos anúncios oficiais serão adicionados depois que o cliente confirmar as plataformas em que deseja receber reservas.';
+const { content, platforms, tone } = Astro.props;
+const { contact } = content;
+const hasDirect = Boolean(contact.whatsapp || contact.email);
+const hasLivePlatform = platforms.some((p) => p.url);
+const emailSubject = `Disponibilidade · ${content.name}`;
 ---
 
 <Section
   id={SECTION_IDS.booking}
-  tone={tone}
   eyebrow="Reservas"
-  title={many ? 'Reserve pela plataforma de sua preferência' : platforms[0] ? `Reserve ${platforms[0].byName}` : 'Opções para reservar'}
-  intro={intro}
+  title="Consulte a disponibilidade *e reserve*"
+  intro="Escolha a plataforma de sua preferência ou fale diretamente com o proprietário."
+  tone={tone}
 >
-  <ul class="platforms" role="list">
-    {platforms.map((pl) => (
-        <li class="platform">
-          <h3 class="platform__name">{pl.name}</h3>
-          <p class="platform__text">
-            Anúncio oficial do {name} {pl.inName}.
+  {
+    platforms.length > 0 && (
+      <ul class="platforms" role="list">
+        {platforms.map((pl) => (
+          <li class:list={['platform', `platform--${pl.id}`, { 'platform--pending': !pl.url }, 'reveal']}>
+            <p class="platform__name">{pl.name}</p>
+            <p class="platform__text">
+              {pl.url
+                ? `Veja datas, valores e condições e conclua a reserva ${pl.byName}.`
+                : 'Link do anúncio aguardando configuração.'}
+            </p>
+            {pl.url ? (
+              <Button href={pl.url} external size="lg" class="platform__btn">
+                Reservar {pl.inName}
+              </Button>
+            ) : (
+              <p class="platform__pending" role="note">
+                <Icon name="clock" size={16} />
+                Pendente de configuração
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  {
+    hasDirect && (
+      <div class="direct reveal">
+        <div class="direct__text">
+          <p class="direct__title">
+            <Icon name="star" size={12} class="direct__star" />
+            Reserva direta com o proprietário
           </p>
-          <Button href={pl.url} external class="platform__cta">
-            Reservar {pl.inName}
-          </Button>
-        </li>
-      ))}
-    {clientPreview && pendingPlatforms.map((label) => (
-        <li class="platform">
-          <h3 class="platform__name">{label}</h3>
-          <PreviewPlaceholder shape="inline" label="Link do anúncio" />
-        </li>
-      ))}
-  </ul>
-  {(platforms.length > 0 || clientPreview) && (
-    <p class="disclaimer">
-      Este site não realiza reservas nem recebe pagamentos. A reserva é concluída na plataforma escolhida, de acordo com as
-      regras dela.
-    </p>
-  )}
+          <p class="direct__lead">Prefere conversar antes? Consulte datas diretamente por WhatsApp ou e-mail.</p>
+        </div>
+        <div class="direct__actions">
+          {contact.whatsapp && (
+            <Button
+              href={whatsappUrl(contact.whatsapp, contact.whatsappMessage)}
+              variant="secondary"
+              external
+              icon="message"
+            >
+              WhatsApp {formatWhatsapp(contact.whatsapp)}
+            </Button>
+          )}
+          {contact.email && (
+            <Button href={mailtoUrl(contact.email, emailSubject)} variant="quiet" icon="mail">
+              {contact.email}
+            </Button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  {
+    hasLivePlatform && (
+      <p class="booking__note">
+        Nas plataformas, a reserva e o pagamento são feitos no próprio site escolhido. Este site não realiza reservas nem
+        recebe pagamentos.
+      </p>
+    )
+  }
 </Section>
 
 <style>
@@ -74,40 +118,116 @@ const intro = platforms.length > 0
 
   @media (min-width: 768px) {
     .platforms {
-      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
     }
   }
 
   .platform {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    align-content: start;
     gap: var(--space-3);
-    padding: var(--space-6) var(--space-5);
+    padding: var(--space-6);
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .platform p {
+    margin: 0;
   }
 
   .platform__name {
-    margin: 0;
     font-family: var(--font-display-stack);
-    font-size: var(--text-xl);
-    font-weight: var(--font-weight-regular);
-    color: var(--color-heading);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.1;
+    color: var(--color-title);
   }
 
   .platform__text {
     color: var(--color-text-muted);
   }
 
-  .platform :global(.platform__cta) {
-    margin-top: auto;
-    align-self: flex-start;
+  .platform :global(.platform__btn) {
+    justify-self: start;
+    margin-top: var(--space-3);
   }
 
-  .disclaimer {
-    max-width: var(--width-prose);
+  .platform--pending {
+    border-style: dashed;
+    border-color: var(--color-border-strong);
+    background: rgb(255 255 255 / 0.6);
+    box-shadow: none;
+  }
+
+  .platform__pending {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    justify-self: start;
+    min-height: var(--tap-target);
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-dev-notice-bg);
+    color: var(--color-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-bold);
+  }
+
+  /* ── Reserva direta ─────────────────────────────────────── */
+  .direct {
+    display: grid;
+    gap: var(--space-4);
+    align-items: center;
     margin-top: var(--space-6);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    border: var(--border-width) solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  @media (min-width: 1024px) {
+    .direct {
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: var(--space-5) var(--space-6);
+    }
+  }
+
+  .direct p {
+    margin: 0;
+  }
+
+  .direct__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+  }
+
+  .direct :global(.direct__star) {
+    color: var(--color-highlight);
+  }
+
+  .direct__lead {
+    color: var(--color-text-muted);
+  }
+
+  .direct__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-5);
+  }
+
+  .direct__actions :global(.btn--quiet) {
+    overflow-wrap: anywhere;
+  }
+
+  .booking__note {
+    margin-top: var(--space-5);
     font-size: var(--text-sm);
     color: var(--color-text-muted);
   }

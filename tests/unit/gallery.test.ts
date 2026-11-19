@@ -8,20 +8,20 @@ import { imageSchema, type Image } from '../../src/lib/content/schema';
 const img = (src: string, group: Image['group'] = null): Image => imageSchema.parse({ src, alt: src, group });
 
 describe('ordem narrativa da galeria', () => {
-  it('ordena fachada → social → quartos → externa → detalhes; sem grupo no fim', () => {
+  it('ordena fachada → integrado → mezanino → externa → detalhes; sem grupo no fim', () => {
     const out = sortGallery([
       img('/a.jpg', 'detalhes'),
       img('/b.jpg'),
       img('/c.jpg', 'fachada'),
       img('/d.jpg', 'externa'),
-      img('/e.jpg', 'social'),
-      img('/f.jpg', 'quartos'),
+      img('/e.jpg', 'integrado'),
+      img('/f.jpg', 'mezanino'),
     ]);
     expect(out.map((i) => i.src)).toEqual(['/c.jpg', '/e.jpg', '/f.jpg', '/d.jpg', '/a.jpg', '/b.jpg']);
   });
 
   it('é estável: dentro do grupo mantém a ordem cadastrada', () => {
-    const out = sortGallery([img('/s2.jpg', 'social'), img('/s1.jpg', 'social'), img('/x.jpg'), img('/y.jpg')]);
+    const out = sortGallery([img('/s2.jpg', 'integrado'), img('/s1.jpg', 'integrado'), img('/x.jpg'), img('/y.jpg')]);
     expect(out.map((i) => i.src)).toEqual(['/s2.jpg', '/s1.jpg', '/x.jpg', '/y.jpg']);
   });
 

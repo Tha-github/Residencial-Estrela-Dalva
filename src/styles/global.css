@@ -51,44 +51,48 @@ textarea {
 }
 
 /* ── Tipografia ───────────────────────────────────────────── */
+/* Mesmo padrão do Ametista: serifa 500, título inteiro em azul-mar. */
 h1,
 h2,
-h3,
-h4 {
+h3 {
   margin: 0 0 var(--space-4);
-  color: var(--color-heading);
+  font-family: var(--font-display-stack);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-title);
   text-wrap: balance;
 }
 
-h1,
-h2 {
-  font-family: var(--font-display-stack);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-tight);
-  letter-spacing: var(--tracking-display);
+h1 {
+  font-size: var(--text-4xl);
 }
 
-h1 {
+h2 {
   font-size: var(--text-3xl);
 }
 
-h2 {
-  font-size: var(--text-2xl);
-}
-
-h3,
-h4 {
-  font-family: var(--font-sans-stack);
-  font-weight: var(--font-weight-bold);
+h3 {
+  font-size: var(--text-xl);
   line-height: var(--line-height-snug);
 }
 
-h3 {
-  font-size: var(--text-lg);
+h4 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-sans-stack);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  color: var(--color-heading);
 }
 
-h4 {
-  font-size: var(--text-base);
+/* Numeral editorial (serifa) para números que importam: 450 m, 4, 14h */
+.numeral {
+  font-family: var(--font-display-stack);
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+  color: var(--color-heading);
 }
 
 p {
@@ -104,10 +108,12 @@ em {
   font-style: italic;
 }
 
-/* Itálico do display: usado com parcimônia para dar voz aos títulos. */
-:is(h1, h2) em {
+/* Ênfase editorial em títulos: itálico da serifa, sem trocar de cor. */
+:is(h1, h2, h3) em {
   font-family: var(--font-display-stack);
   font-style: italic;
+  font-weight: var(--font-weight-regular);
+  color: inherit;
 }
 
 small {
@@ -182,12 +188,28 @@ a:hover {
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
-  color: var(--color-accent);
+  color: var(--color-eyebrow);
 }
 
 .lead {
   font-size: var(--text-lg);
+  line-height: var(--line-height-snug);
   color: var(--color-text-muted);
+}
+
+/* Faixa escura (mar profundo): redefine os papéis para leitura sobre o fundo. */
+.on-inverse {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  --color-heading: var(--color-inverse-text);
+  --color-title: var(--sea-200);
+  --color-text: var(--color-inverse-text);
+  --color-text-muted: var(--color-inverse-muted);
+  --color-eyebrow: var(--color-inverse-eyebrow);
+  --color-accent: var(--sand-50);
+  --color-accent-hover: var(--white);
+  --color-border: rgb(219 233 239 / 0.18);
+  --color-focus: var(--color-focus-on-dark);
 }
 
 .visually-hidden {

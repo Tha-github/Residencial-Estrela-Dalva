@@ -118,35 +118,31 @@ test.describe('imagens e galeria', () => {
   });
 });
 
-test.describe('legibilidade do hero com foto', () => {
-  // O texto precisa ficar inteiro sobre o véu forte (contraste testado no pior caso em
-  // tests/unit/contrast.test.ts). O véu forte começa após o degradê (padding-top da faixa).
+test.describe('legibilidade do banner com foto', () => {
+  // O texto fica num painel de vidro escuro; a opacidade mínima (0.62) garante 4.5:1
+  // mesmo sobre foto branca (pior caso testado em tests/unit/contrast.test.ts).
   for (const vp of [
     { width: 320, height: 640 },
     { width: 390, height: 844 },
     { width: 768, height: 1024 },
     { width: 1440, height: 900 },
   ]) {
-    test(`texto do hero inteiro sobre o véu forte (${vp.width}px)`, async ({ page }) => {
+    test(`painel de texto inteiro na moldura e opaco o bastante (${vp.width}px)`, async ({ page }) => {
       await page.setViewportSize(vp);
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.goto(PAGE, { waitUntil: 'networkidle' });
       const r = await page.evaluate(() => {
-        const band = document.querySelector<HTMLElement>('.hero__band')!;
-        const b = band.getBoundingClientRect();
-        const c = document.querySelector('.hero__content')!.getBoundingClientRect();
-        const hero = document.querySelector('.hero')!.getBoundingClientRect();
-        return {
-          strongStart: b.top + parseFloat(getComputedStyle(band).paddingTop),
-          contentTop: c.top,
-          contentBottom: c.bottom,
-          bandBottom: b.bottom,
-          heroBottom: hero.bottom,
-        };
+        const panel = document.querySelector<HTMLElement>('.hero__panel')!;
+        const p = panel.getBoundingClientRect();
+        const s = document.querySelector('.hero__stage')!.getBoundingClientRect();
+        const alpha = Number(/rgba?\([^)]*[,/]\s*([\d.]+)\)/.exec(getComputedStyle(panel).backgroundColor)?.[1] ?? 1);
+        return { p: { t: p.top, b: p.bottom, l: p.left, r: p.right }, s: { t: s.top, b: s.bottom, l: s.left, r: s.right }, alpha };
       });
-      expect(r.contentTop).toBeGreaterThanOrEqual(r.strongStart - 0.5);
-      expect(r.contentBottom).toBeLessThanOrEqual(r.bandBottom);
-      expect(r.bandBottom).toBeLessThanOrEqual(r.heroBottom + 0.5);
+      expect(r.p.t).toBeGreaterThanOrEqual(r.s.t);
+      expect(r.p.b).toBeLessThanOrEqual(r.s.b);
+      expect(r.p.l).toBeGreaterThanOrEqual(r.s.l);
+      expect(r.p.r).toBeLessThanOrEqual(r.s.r);
+      expect(r.alpha).toBeGreaterThanOrEqual(0.62);
     });
   }
 });

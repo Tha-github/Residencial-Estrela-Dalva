@@ -1,0 +1,149 @@
+---
+/**
+ * Estrutura e comodidades, por categoria. Só itens informados pelo proprietário.
+ * A primeira categoria (cozinha) ganha o bloco maior; as demais se distribuem ao lado.
+ */
+import { SECTION_IDS } from '../../lib/content/derive';
+import type { Residencial } from '../../lib/content/schema';
+import Icon from '../ui/Icon.astro';
+import Section from '../ui/Section.astro';
+
+interface Props {
+  amenities: Residencial['amenities'];
+  tone: 'default' | 'alt';
+}
+
+const { amenities, tone } = Astro.props;
+---
+
+<Section
+  id={SECTION_IDS.amenities}
+  eyebrow="Estrutura"
+  title="Tudo o que você precisa, *já no loft*"
+  intro="Comodidades confirmadas pelo proprietário, organizadas por ambiente."
+  tone={tone}
+>
+  <ul class="amenities" role="list">
+    {
+      amenities.map((group, i) => (
+        <li class:list={['amenity', 'reveal', { 'amenity--featured': i === 0 && amenities.length > 2 }]}>
+          <div class="amenity__head">
+            <span class="amenity__icon">
+              <Icon name={group.icon} size={24} />
+            </span>
+            <h3 class="amenity__title">{group.title}</h3>
+          </div>
+          <ul class="amenity__items" role="list">
+            {group.items.map((item) => (
+              <li>
+                <Icon name="check" size={16} />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))
+    }
+  </ul>
+</Section>
+
+<style>
+  .amenities {
+    display: grid;
+    gap: var(--grid-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 768px) {
+    .amenities {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .amenity--featured {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .amenities {
+      grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr));
+    }
+    .amenity--featured {
+      grid-column: 1;
+      grid-row: span 2;
+    }
+    /* Última categoria sobrando sozinha ocupa a linha inteira ao lado da cozinha. */
+    .amenity--featured ~ .amenity:last-child:nth-child(even) {
+      grid-column: span 2;
+    }
+  }
+
+  .amenity {
+    display: grid;
+    align-content: start;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  @media (min-width: 768px) {
+    .amenity {
+      padding: var(--space-6);
+    }
+  }
+
+  .amenity--featured {
+    background:
+      radial-gradient(90% 60% at 100% 0%, var(--color-accent-soft), transparent 70%),
+      var(--color-surface);
+  }
+
+  .amenity__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .amenity__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+  }
+
+  .amenity__title {
+    margin: 0;
+    font-size: var(--text-xl);
+  }
+
+  .amenity__items {
+    display: grid;
+    gap: var(--space-2) var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .amenity--featured .amenity__items {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  }
+
+  .amenity__items li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .amenity__items :global(.icon) {
+    color: var(--color-highlight);
+  }
+</style>

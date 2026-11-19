@@ -19,9 +19,9 @@ import { contrastPairs } from '../styles/contrast-pairs';
 const content = getContent();
 const tokens = parseCssTokens(tokensCss);
 const palette = [
-  '--sand-50', '--sand-100', '--sand-200', '--sand-400',
-  '--sea-100', '--sea-700', '--sea-800', '--sea-900',
-  '--graphite-500', '--graphite-700', '--graphite-900', '--dawn-500',
+  '--sand-50', '--sand-100', '--sand-200', '--sand-300',
+  '--sea-100', '--sea-200', '--sea-700', '--sea-900', '--sea-950',
+  '--graphite-600', '--graphite-900', '--terra-300', '--terra-500', '--terra-600',
 ].map((name) => ({ name, hex: resolveHex(name, tokens) }));
 
 const pairs = contrastPairs.map((p) => {
@@ -32,14 +32,16 @@ const pairs = contrastPairs.map((p) => {
 });
 
 const scale = [
-  ['--text-display', 'Display'], ['--text-3xl', '3XL · H1'], ['--text-2xl', '2XL · H2'],
+  ['--text-display', 'Display · banner'], ['--text-4xl', '4XL · H1'], ['--text-3xl', '3XL · H2'], ['--text-2xl', '2XL'],
   ['--text-xl', 'XL'], ['--text-lg', 'LG · H3 / lead'], ['--text-base', 'Base · corpo'],
   ['--text-sm', 'SM'], ['--text-xs', 'XS · eyebrow'],
 ] as const;
 
 const icons: IconName[] = [
   'star', 'arrow-right', 'arrow-up-right', 'chevron-left', 'chevron-right', 'close', 'menu',
-  'map-pin', 'waves', 'message', 'mail', 'instagram', 'image', 'check',
+  'map-pin', 'waves', 'message', 'mail', 'instagram', 'image', 'check', 'chevron-down', 'users',
+  'bed-double', 'bed-single', 'sofa', 'levels', 'layers', 'pot', 'snowflake', 'fan', 'flame', 'washer', 'clock',
+  'log-in', 'log-out', 'bag', 'sun', 'moon', 'walk', 'home',
 ];
 const demoNav = [
   { href: '#tipografia', label: 'Tipografia' },
@@ -56,7 +58,7 @@ const demoNav = [
     não são conteúdo do imóvel. Esta rota não existe no build.
   </div>
 
-  <Section id="paleta" eyebrow="Fundamentos" title="Paleta: areia, mar, grafite e aurora">
+  <Section id="paleta" eyebrow="Fundamentos" title="Paleta: areia, mar, grafite e terracota (família Ametista)">
     <ul class="swatches">
       {
         palette.map(({ name, hex }) => (
@@ -95,14 +97,14 @@ const demoNav = [
 
   <Section id="tipografia" eyebrow="Fundamentos" title="Tipografia" tone="alt">
     <p class="lead prose">
-      Instrument Serif (títulos, um peso + itálico) e Figtree (texto, 400–600). [exemplo]
+      Newsreader (títulos, 400/500 + itálico) e Figtree (texto, 400–600) — as mesmas do Residencial Ametista. [exemplo]
     </p>
     <ul class="scale">
       {
         scale.map(([token, label]) => (
           <li>
             <span class="scale__label">{label}<code>{token}</code></span>
-            <span class:list={['scale__sample', { serif: token.includes('display') || token.includes('3xl') || token.includes('2xl') }]} style={`font-size:var(${token})`}>
+            <span class:list={['scale__sample', { serif: token.includes('display') || token.includes('4xl') || token.includes('3xl') || token.includes('2xl') }]} style={`font-size:var(${token})`}>
               Amanhecer em Ingleses
             </span>
           </li>
@@ -126,6 +128,10 @@ const demoNav = [
       <Button href="#componentes" variant="quiet" icon="arrow-right">Discreto</Button>
       <Button href="https://example.com" external variant="secondary">Link externo</Button>
       <Button href="#componentes" size="lg" icon="arrow-right">Grande</Button>
+    </div>
+    <div class="row row--dark">
+      <Button href="#componentes" variant="on-image">Sobre foto</Button>
+      <Button href="#componentes" variant="on-image-outline">Contorno sobre foto</Button>
     </div>
     <div class="grid cards">
       <Card title="Card de superfície [exemplo]" icon="waves">
@@ -153,10 +159,13 @@ const demoNav = [
   <div id="hero">
     <Hero
       name={content.name}
-      locationLabel={`${content.location.beach} · ${content.location.city}, ${content.location.stateCode}`}
-      title="Frase curta do hero [exemplo]"
-      cta={{ href: '#hero', label: 'Ver opções de reserva' }}
-      secondaryCta={{ href: '#hero', label: 'Conhecer o residencial' }}
+      unitLabel="Loft · Apto [exemplo]"
+      title="Frase curta do *banner* [exemplo]"
+      subtitle="Descrição curta do banner. [exemplo]"
+      image={null}
+      highlights={[{ icon: 'users', text: '[exemplo] destaque' }]}
+      cta={{ href: '#hero', label: 'Consultar disponibilidade' }}
+      secondaryCta={{ href: '#hero', label: 'Conhecer o loft' }}
     />
   </div>
 </BaseLayout>
@@ -245,6 +254,11 @@ const demoNav = [
     align-items: center;
     gap: var(--space-4);
     margin-bottom: var(--space-7);
+  }
+  .row--dark {
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background: var(--sea-900);
   }
   .cards {
     margin-bottom: var(--space-7);

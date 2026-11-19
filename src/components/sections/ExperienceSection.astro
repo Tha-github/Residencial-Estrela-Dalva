@@ -1,0 +1,179 @@
+---
+/**
+ * Experiência de hospedagem: um dia no loft, em momentos curtos.
+ * Faixa escura (mar profundo) que quebra o ritmo das seções claras.
+ * Textos só com o que é real (distâncias e comodidades informadas) —
+ * nenhum serviço do condomínio é sugerido. Foto da área externa, se houver.
+ */
+import { photoOf, SECTION_IDS } from '../../lib/content/derive';
+import type { Residencial } from '../../lib/content/schema';
+import Icon from '../ui/Icon.astro';
+import PhotoSlot from '../ui/PhotoSlot.astro';
+import Section from '../ui/Section.astro';
+
+interface Props {
+  content: Residencial;
+  clientPreview?: boolean;
+}
+
+const { content, clientPreview = false } = Astro.props;
+const { experience } = content;
+const outdoor = photoOf(content, 'externa');
+const hasPhoto = Boolean(outdoor || clientPreview);
+---
+
+<Section
+  id={SECTION_IDS.experience}
+  eyebrow="Experiência"
+  title={experience.title ?? 'Como é se hospedar aqui'}
+  intro={experience.intro}
+  tone="inverse"
+>
+  <div class:list={['exp', { 'exp--photo': hasPhoto }]}>
+    <ol class="day" role="list">
+      {
+        experience.moments.map((m, i) => (
+          <li class="moment reveal">
+            <span class="moment__marker">
+              <span class="moment__dot">
+                <Icon name={m.icon} size={22} />
+              </span>
+              <span class="moment__index" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+            </span>
+            <h3 class="moment__title">{m.title}</h3>
+            <p class="moment__text">{m.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+
+    {
+      hasPhoto && (
+        <PhotoSlot
+          image={outdoor}
+          pendingLabel="Área externa com churrasqueira"
+          clientPreview={clientPreview}
+          sizes="(min-width: 1216px) 1216px, 92vw"
+          ratio="16 / 7"
+          class="exp__photo"
+        />
+      )
+    }
+  </div>
+</Section>
+
+<style>
+  .exp {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  .exp :global(.exp__photo.photo--pending) {
+    border-color: rgb(255 255 255 / 0.4);
+    background: rgb(255 255 255 / 0.06);
+    color: var(--terra-300);
+  }
+
+  .exp :global(.exp__photo .photo__label) {
+    color: var(--white);
+  }
+
+  .exp :global(.exp__photo .photo__status) {
+    color: var(--sea-200);
+  }
+
+  /* Linha do tempo: vertical no mobile, horizontal a partir do tablet largo. */
+  .day {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .day::before {
+    content: '';
+    position: absolute;
+    top: 1.5rem;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    border-left: 1px dashed rgb(255 255 255 / 0.35);
+  }
+
+  .moment {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    column-gap: var(--space-4);
+  }
+
+  .moment__marker {
+    grid-row: span 2;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: var(--space-2);
+  }
+
+  .moment__dot {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid rgb(255 255 255 / 0.3);
+    border-radius: 50%;
+    background: var(--sea-800);
+    color: var(--terra-300);
+  }
+
+  .moment__index {
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    color: var(--sea-200);
+  }
+
+  .moment__title {
+    margin: var(--space-2) 0 var(--space-1);
+    font-size: var(--text-xl);
+  }
+
+  .moment__text {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+
+  @media (min-width: 900px) {
+    .exp:not(.exp--photo) .day,
+    .exp--photo .day {
+      grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+      gap: var(--space-5);
+    }
+    .day::before {
+      top: 1.5rem;
+      bottom: auto;
+      left: 1.5rem;
+      right: 1.5rem;
+      border-left: 0;
+      border-top: 1px dashed rgb(255 255 255 / 0.35);
+    }
+    .moment {
+      grid-template-columns: 1fr;
+      align-content: start;
+    }
+    .moment__marker {
+      grid-row: auto;
+      grid-template-columns: auto auto;
+      justify-content: start;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .moment__title {
+      margin-top: var(--space-4);
+    }
+  }
+
+</style>

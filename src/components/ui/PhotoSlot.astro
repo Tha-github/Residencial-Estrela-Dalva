@@ -1,0 +1,107 @@
+---
+/**
+ * Foto de uma seção.
+ * - Com foto real: <picture> AVIF/WebP + fallback, recorte pelo ponto focal.
+ * - Sem foto, na prévia do cliente: quadro tracejado dizendo qual foto enviar.
+ * - Sem foto, no site publicado: não renderiza nada (o layout se adapta).
+ * Nunca usa foto genérica no lugar da real.
+ */
+import { Picture } from 'astro:assets';
+import type { Image } from '../../lib/content/schema';
+import { FORMATS, resolveImage, WIDTHS } from '../../lib/images';
+import Icon from './Icon.astro';
+
+interface Props {
+  image: Image | null;
+  /** Qual foto o proprietário precisa enviar (só aparece na prévia). */
+  pendingLabel: string;
+  clientPreview?: boolean;
+  sizes: string;
+  /** Proporção do quadro, ex.: "4 / 5". */
+  ratio?: string;
+  class?: string;
+}
+
+const { image, pendingLabel, clientPreview = false, sizes, ratio = '4 / 3', class: className } = Astro.props;
+const file = image ? resolveImage(image.src) : null;
+---
+
+{
+  image && file ? (
+    <figure class:list={['photo', className]} style={`--ratio: ${ratio}`}>
+      <Picture
+        src={file}
+        alt={image.alt}
+        formats={[...FORMATS]}
+        widths={[...WIDTHS.feature]}
+        sizes={sizes}
+        loading="lazy"
+        decoding="async"
+        style={`object-position: ${image.focus}`}
+        class="photo__img"
+      />
+      {image.caption && <figcaption class="photo__caption">{image.caption}</figcaption>}
+    </figure>
+  ) : (
+    clientPreview && (
+      <div class:list={['photo', 'photo--pending', className]} style={`--ratio: ${ratio}`} role="note">
+        <Icon name="image" size={24} />
+        <span class="photo__label">{pendingLabel}</span>
+        <span class="photo__status">Foto real aguardando envio</span>
+      </div>
+    )
+  )
+}
+
+<style>
+  .photo {
+    position: relative;
+    margin: 0;
+    aspect-ratio: var(--ratio);
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--sand-100);
+  }
+
+  .photo :global(.photo__img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo__caption {
+    position: absolute;
+    inset: auto var(--space-3) var(--space-3) auto;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    background: rgb(var(--sea-rgb) / 0.72);
+    color: var(--white);
+    font-size: var(--text-xs);
+  }
+
+  .photo--pending {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border: 1px dashed var(--color-border-strong);
+    background:
+      repeating-linear-gradient(135deg, rgb(15 79 109 / 0.04) 0 12px, transparent 12px 24px),
+      var(--sand-100);
+    color: var(--color-accent);
+    text-align: center;
+  }
+
+  .photo__label {
+    max-width: 24ch;
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-snug);
+    color: var(--color-heading);
+  }
+
+  .photo__status {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+</style>

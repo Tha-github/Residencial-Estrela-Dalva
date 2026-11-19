@@ -1,7 +1,8 @@
 ---
 /**
- * Seção padrão: ritmo vertical, cabeçalho (eyebrow + título + introdução) e conteúdo.
+ * Seção padrão: ritmo vertical, cabeçalho (sobretítulo + título + introdução) e conteúdo.
  * O título é obrigatório: cada seção pública precisa de um heading para navegação assistiva.
+ * `*trecho*` no título vira ênfase em itálico (texto puro; nunca HTML), como no Ametista.
  */
 import Icon from './Icon.astro';
 
@@ -9,30 +10,25 @@ interface Props {
   id: string;
   title: string;
   eyebrow?: string;
-  intro?: string;
-  tone?: 'default' | 'alt';
+  intro?: string | null;
+  tone?: 'default' | 'alt' | 'inverse';
   width?: 'content' | 'wide';
-  headingLevel?: 2 | 3;
+  align?: 'start' | 'center';
   class?: string;
 }
 
-const {
-  id,
-  title,
-  eyebrow,
-  intro,
-  tone = 'default',
-  width = 'content',
-  headingLevel = 2,
-  class: className,
-} = Astro.props;
-const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const { id, title, eyebrow, intro, tone = 'default', width = 'content', align = 'start', class: className } = Astro.props;
 const headingId = `${id}-titulo`;
+const parts = title.split(/\*(.+?)\*/);
 ---
 
-<section id={id} class:list={['section', `section--${tone}`, className]} aria-labelledby={headingId}>
+<section
+  id={id}
+  class:list={['section', `section--${tone}`, { 'on-inverse': tone === 'inverse' }, className]}
+  aria-labelledby={headingId}
+>
   <div class:list={['container', { 'container--wide': width === 'wide' }]}>
-    <header class="section__header reveal">
+    <header class:list={['section__header', `section__header--${align}`, 'reveal']}>
       {
         eyebrow && (
           <p class="eyebrow">
@@ -41,7 +37,9 @@ const headingId = `${id}-titulo`;
           </p>
         )
       }
-      <Heading id={headingId} class="section__title">{title}</Heading>
+      <h2 id={headingId} class="section__title">
+        {parts.map((part, i) => (i % 2 === 1 ? <em>{part}</em> : part))}
+      </h2>
       {intro && <p class="lead section__intro">{intro}</p>}
     </header>
     <slot />
@@ -50,11 +48,17 @@ const headingId = `${id}-titulo`;
 
 <style>
   .section {
+    --section-bg: var(--color-bg);
     padding-block: var(--section-gap);
   }
 
   .section--alt {
-    background: var(--color-surface-alt);
+    --section-bg: var(--color-surface-alt);
+    background: var(--section-bg);
+  }
+
+  .section--inverse {
+    --section-bg: var(--color-inverse-bg);
   }
 
   .section__header {
@@ -62,11 +66,28 @@ const headingId = `${id}-titulo`;
     margin-bottom: var(--space-7);
   }
 
+  .section__header--center {
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .section__title {
+    margin-bottom: 0;
+  }
+
   .section__intro {
-    margin-top: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  .section__header--center .section__intro {
+    margin-inline: auto;
   }
 
   .section :global(.section__star) {
     color: var(--color-highlight);
+  }
+
+  .section--inverse :global(.section__star) {
+    color: var(--terra-300);
   }
 </style>
