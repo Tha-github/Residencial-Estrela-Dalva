@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isSafeExternalUrl, type ExternalLinkKind } from '../url';
+import { themeProblems, type Theme } from '../theme';
 
 /**
  * Esquema do conteúdo editável do residencial.
@@ -29,6 +30,7 @@ const text = (max: number) =>
     .trim()
     .min(1)
     .max(max)
+  .refine((v) => !/[<>]/.test(v), 'HTML não é permitido')
     .refine((v) => !hasControlChars(v), 'Contém caracteres de controle inválidos');
 
 const externalUrl = (kind: ExternalLinkKind) =>
@@ -84,7 +86,7 @@ export const imageSchema = z
       .string()
       .trim()
       .max(300)
-      .regex(/^\/(?!\/)[\w\-./]+\.(jpe?g|png|webp|avif)$/i, 'Use um caminho local iniciado por "/" (jpg, png, webp ou avif)')
+      .regex(/^\/(?!\/)[\p{L}\p{N}_\-./ ]+\.(jpe?g|png|webp|avif)$/iu, 'Use um caminho local iniciado por "/" (jpg, png, webp ou avif)')
       .refine((v) => !v.includes('..'), 'Caminho inválido'),
     /** Texto alternativo descritivo do que se vê. */
     alt: z.string().trim().min(1, 'Descreva o conteúdo da foto').max(200),
@@ -120,8 +122,8 @@ export const residencialSchema = z
         city: text(80),
         state: text(80),
         stateCode: z.string().regex(/^[A-Z]{2}$/),
-        address: text(200).nullable(),
-        mapsUrl: externalUrl('maps').nullable(),
+        address: text(200).nullable().default(null),
+        mapsUrl: externalUrl('maps').nullable().default(null),
         /** O que há por perto, informado pelo proprietário (ex.: mercados, farmácias). */
         nearby: z.array(text(40)).max(10),
       })
@@ -141,19 +143,24 @@ export const residencialSchema = z
     hero: z
       .object({
         title: text(120).nullable(),
-        subtitle: text(280).nullable(),
-        image: imageSchema.nullable(),
+        subtitle: text(280).nullable().default(null),
+        image: imageSchema.nullable().default(null),
+        primaryLabel: text(40),
+        primaryTarget: z.enum(['booking', 'loft', 'gallery', 'location']),
+        secondaryLabel: text(40),
+        secondaryTarget: z.enum(['booking', 'loft', 'gallery', 'location']),
+        highlights: z.array(z.object({ icon: z.enum(['users', 'waves', 'bag']), text: text(60) }).strict()).max(4),
       })
       .strict(),
     about: z
       .object({
-        title: text(120).nullable(),
+        title: text(120).nullable().default(null),
         paragraphs: z.array(text(1200)).max(6),
       })
       .strict(),
     /** Destaques do loft (apresentação). */
     features: z
-      .array(z.object({ title: text(80), text: text(200).nullable(), icon }).strict())
+      .array(z.object({ title: text(80), text: text(200).nullable().default(null), icon }).strict())
       .max(8),
     /** Onde cada pessoa dorme, por nível do loft (de cima para baixo). */
     sleeping: z
@@ -161,7 +168,7 @@ export const residencialSchema = z
         z
           .object({
             level: text(60),
-            detail: text(60).nullable(),
+            detail: text(60).nullable().default(null),
             beds: z
               .array(z.object({ type: z.enum(BED_TYPES), label: text(60) }).strict())
               .min(1)
@@ -183,12 +190,26 @@ export const residencialSchema = z
       .max(8),
     experience: z
       .object({
-        title: text(120).nullable(),
-        intro: text(400).nullable(),
+        title: text(120).nullable().default(null),
+        intro: text(400).nullable().default(null),
         moments: z.array(z.object({ title: text(60), text: text(220), icon }).strict()).max(6),
       })
       .strict(),
     gallery: z.array(imageSchema).max(60),
+    copy: z.object({
+      galleryTitle: text(120),
+      sleepingTitle: text(120),
+      sleepingIntro: text(300),
+      amenitiesTitle: text(120),
+      amenitiesIntro: text(300),
+      locationTitle: text(120),
+      locationIntro: text(400),
+      practicalTitle: text(120),
+      faqTitle: text(120),
+      bookingTitle: text(120),
+      bookingIntro: text(300),
+    }).strict(),
+    faq: z.array(z.object({ question: text(160), answer: text(600) }).strict()).max(12),
     practical: z
       .object({
         maxGuests: z.number().int().min(1).max(30).nullable(),
@@ -199,23 +220,36 @@ export const residencialSchema = z
       .strict(),
     booking: z
       .object({
-        booking: externalUrl('booking').nullable(),
-        airbnb: externalUrl('airbnb').nullable(),
-        decolar: externalUrl('decolar').nullable(),
+        booking: externalUrl('booking').nullable().default(null),
+        airbnb: externalUrl('airbnb').nullable().default(null),
+        decolar: externalUrl('decolar').nullable().default(null),
+        buttonPrefix: text(30),
       })
       .strict(),
     contact: z
       .object({
-        instagram: externalUrl('instagram').nullable(),
+        instagram: externalUrl('instagram').nullable().default(null),
         /** Somente dígitos com DDI, ex.: 5548999999999 */
-        whatsapp: z.string().regex(/^\d{12,13}$/, 'Use apenas dígitos com DDI e DDD').nullable(),
+        whatsapp: z.string().regex(/^\d{12,13}$/, 'Use apenas dígitos com DDI e DDD').nullable().default(null),
         /** Mensagem inicial do WhatsApp. */
-        whatsappMessage: text(300).nullable(),
-        email: z.email().max(254).nullable(),
+        whatsappMessage: text(300).nullable().default(null),
+        email: z.email().max(254).nullable().default(null),
       })
       .strict(),
+    theme: z.object({
+      primary: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      secondary: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      accent: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      background: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      text: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+    }).strict(),
   })
-  .strict();
+  .strict()
+  .superRefine((content, ctx) => {
+    for (const message of themeProblems(content.theme as Theme)) {
+      ctx.addIssue({ code: 'custom', path: ['theme'], message });
+    }
+  });
 
 export type Residencial = z.infer<typeof residencialSchema>;
 export type Image = z.infer<typeof imageSchema>;

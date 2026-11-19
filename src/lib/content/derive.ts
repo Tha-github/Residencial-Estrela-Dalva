@@ -189,15 +189,7 @@ export function getNavItems(v: Visibility): NavItem[] {
 
 /** Destaques curtos do banner: capacidade e distâncias confirmadas. */
 export function getHeroHighlights(c: Residencial): Array<{ icon: 'users' | 'waves' | 'bag'; text: string }> {
-  const out: Array<{ icon: 'users' | 'waves' | 'bag'; text: string }> = [];
-  if (c.practical.maxGuests) out.push({ icon: 'users', text: `Até ${c.practical.maxGuests} hóspedes` });
-  for (const d of c.distances) {
-    out.push({
-      icon: d.kind === 'praia' ? 'waves' : 'bag',
-      text: `${formatDistance(d.meters)} ${d.kind === 'praia' ? 'da praia' : `do ${d.place.replace(/\s+dos?\s+.*$/i, '')}`}`,
-    });
-  }
-  return out;
+  return c.hero.highlights;
 }
 
 export interface FaqItem {
@@ -210,6 +202,7 @@ export interface FaqItem {
  * Sem dado, sem pergunta — nada de políticas, taxas ou regras supostas.
  */
 export function getFaq(c: Residencial): FaqItem[] {
+  if (c.faq.length > 0) return c.faq;
   const faq: FaqItem[] = [];
   const { practical: p, property } = c;
   const loft = property.type.toLowerCase();

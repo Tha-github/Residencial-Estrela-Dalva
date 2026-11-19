@@ -40,6 +40,7 @@ export const devFixture = {
     mapsUrl: 'https://www.google.com/maps/search/?api=1&query=exemplo',
   },
   booking: {
+    ...real.booking,
     booking: 'https://www.booking.com/exemplo',
     airbnb: 'https://www.airbnb.com.br/exemplo',
     decolar: 'https://www.decolar.com/exemplo',

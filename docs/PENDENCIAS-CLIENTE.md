@@ -18,7 +18,7 @@ Na prévia pública do GitHub Pages, o que falta aparece em quadros tracejados (
 ## Obrigatórios para o lançamento
 
 - [x] **Foto principal do banner**: entregue (`src/assets/fotos/banner.png`, vista de praia com costão). Pendente apenas confirmar se é a Praia dos Ingleses; até lá, o texto alternativo descreve a cena sem nomear o local.
-- [ ] **Fotos reais do loft** (galeria), indicando o que aparece em cada uma:
+- [x] **Fotos do loft** adicionadas à galeria a partir da pasta `src/assets/fotos`:
   - vista geral mostrando os dois níveis
   - ambientes integrados do piso inferior (aparece na seção "O loft")
   - mezanino (aparece na seção "O loft")
@@ -26,14 +26,14 @@ Na prévia pública do GitHub Pages, o que falta aparece em quadros tracejados (
   - área externa com churrasqueira (aparece na seção "Experiência")
   - fachada ou chegada
   - banheiro e detalhes, se desejado
-- [ ] **Link do anúncio no Booking.com**
-- [ ] **Link do anúncio no Airbnb**
+- [x] **Link do anúncio no Booking.com**
+- [x] **Link do anúncio no Airbnb**
 - [ ] **Domínio definitivo** (com ou sem `www`)
 
 ## Opcionais (aparecem somente se fornecidos)
 
-- [ ] **Foto real da região** (Praia dos Ingleses ou Centrinho), tirada pelo proprietário ou com direito de uso
-- [ ] **Link do Google Maps do imóvel**, ou confirmação do pin. Sem ele, a localização mostra só as distâncias. O CEP 88058-193 citado anteriormente corresponde à "Servidão" Maria Tomasia Cabral, e o número não foi verificado; por isso nenhum endereço é exibido.
+- [x] **Foto da região** adicionada à galeria (`Calçadão Noturno dos Ingleses.png`).
+- [x] **Link do Google Maps do imóvel** recebido e cadastrado.
 - [ ] **Endereço completo** para exibir no site
 - [ ] **Regras da casa**
 - [ ] **Link do anúncio na Decolar**, se ainda existir
@@ -52,7 +52,7 @@ Escritos só com dados confirmados. Ficam em `src/data/residencial.json`.
 - [ ] Banner: "Seu refúgio em Florianópolis, pertinho de tudo." e a descrição do loft
 - [ ] Apresentação: "Um loft pensado para aproveitar cada momento" e os destaques
 - [ ] Experiência: os cinco momentos do dia (acordar, praia, Centrinho, descanso, churrasqueira)
-- [ ] Perguntas frequentes, geradas automaticamente a partir dos dados acima. Nenhuma política de cancelamento, animais, estacionamento, taxas, roupa de cama ou toalhas foi incluída. Se o proprietário quiser esses itens, precisa informá-los.
+- [ ] Perguntas frequentes cadastradas. O proprietário poderá editar as perguntas e respostas existentes pelo painel. Nenhuma política de cancelamento, animais, estacionamento, taxas, roupa de cama ou toalhas foi incluída.
 
 ## SEO após o domínio
 

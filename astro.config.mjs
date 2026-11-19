@@ -115,6 +115,12 @@ export default defineConfig({
         values: ['development', 'preview', 'production'],
         default: 'development',
       }),
+      PUBLIC_ADMIN_API_URL: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+        url: true,
+      }),
     },
   },
 });

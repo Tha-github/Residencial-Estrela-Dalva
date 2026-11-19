@@ -20,6 +20,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "dev:placeholders": "node scripts/generate-dev-placeholders.mjs",
+    "admin:hash-password": "node scripts/hash-admin-password.mjs",
+    "admin:dev": "npx --yes wrangler@4.164.0 dev --config admin-worker/wrangler.jsonc",
+    "admin:deploy": "npx --yes wrangler@4.164.0 deploy --config admin-worker/wrangler.jsonc",
     "validate": "npm run lint && npm run typecheck && npm run test && npm run build && npm run seo:check"
   },
   "dependencies": {

@@ -54,12 +54,18 @@ const display = { ...visible, gallery: visible.gallery || clientPreview, booking
 const tone = getSectionTones(display);
 const toneOf = (key: keyof typeof tone) => (tone[key] === 'inverse' ? 'default' : tone[key]);
 const nav = getNavItems(display);
-const { hero, property } = content;
+const { hero } = content;
 const faq = getFaq(content);
 
+const targetHref: Record<'booking' | 'loft' | 'gallery' | 'location', string> = {
+  booking: `#${SECTION_IDS.booking}`,
+  loft: `#${SECTION_IDS.loft}`,
+  gallery: `#${SECTION_IDS.gallery}`,
+  location: `#${SECTION_IDS.location}`,
+};
 const bookingHref = `#${SECTION_IDS.booking}`;
-const heroCta = display.booking ? { href: bookingHref, label: 'Consultar disponibilidade' } : null;
-const heroSecondary = display.loft ? { href: `#${SECTION_IDS.loft}`, label: `Conhecer o ${property.type.toLowerCase()}` } : null;
+const heroCta = display.booking ? { href: targetHref[hero.primaryTarget], label: hero.primaryLabel } : null;
+const heroSecondary = display.loft ? { href: targetHref[hero.secondaryTarget], label: hero.secondaryLabel } : null;
 ---
 
 <BaseLayout title={pageTitle ?? content.name} description={description} noindex={noindex}>
@@ -78,12 +84,12 @@ const heroSecondary = display.loft ? { href: `#${SECTION_IDS.loft}`, label: `Con
   <QuickFacts content={content} />
 
   {display.loft && <LoftSection content={content} tone={toneOf('loft')} clientPreview={clientPreview} />}
-  {display.gallery && <GallerySection images={content.gallery} tone={toneOf('gallery')} clientPreview={clientPreview} />}
+  {display.gallery && <GallerySection images={content.gallery} title={content.copy.galleryTitle} tone={toneOf('gallery')} clientPreview={clientPreview} />}
   {display.sleeping && <SleepingSection content={content} tone={toneOf('sleeping')} />}
-  {display.amenities && <AmenitiesSection amenities={content.amenities} tone={toneOf('amenities')} />}
+  {display.amenities && <AmenitiesSection amenities={content.amenities} copy={content.copy} tone={toneOf('amenities')} />}
   {display.location && <LocationSection content={content} tone={toneOf('location')} clientPreview={clientPreview} />}
   {display.experience && <ExperienceSection content={content} clientPreview={clientPreview} />}
-  {display.practical && <PracticalSection content={content} tone={toneOf('practical')} />}
+  {display.practical && <PracticalSection content={content} title={content.copy.practicalTitle} tone={toneOf('practical')} />}
   {
     display.booking && (
       <BookingSection
@@ -93,7 +99,7 @@ const heroSecondary = display.loft ? { href: `#${SECTION_IDS.loft}`, label: `Con
       />
     )
   }
-  {display.faq && <FaqSection items={faq} contact={content.contact} tone={toneOf('faq')} />}
+  {display.faq && <FaqSection items={faq} contact={content.contact} title={content.copy.faqTitle} tone={toneOf('faq')} />}
 
   {!clientPreview && <PendingContent items={getPendingItems(content)} />}
 

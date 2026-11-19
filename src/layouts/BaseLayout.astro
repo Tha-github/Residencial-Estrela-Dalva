@@ -1,6 +1,8 @@
 ---
 import { Font } from 'astro:assets';
 import { PUBLIC_DEPLOY_ENV } from 'astro:env/client';
+import { getContent } from '../lib/content/load';
+import { themeTokens } from '../lib/theme';
 import '../styles/global.css';
 
 interface Props {
@@ -14,6 +16,7 @@ interface Props {
 const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const { title, description, socialImage = `${baseUrl}og-residencial.png`, noindex = false } = Astro.props;
 const isProduction = PUBLIC_DEPLOY_ENV === 'production';
+const themeStyle = Object.entries(themeTokens(getContent().theme)).map(([key, value]) => `${key}:${value}`).join(';');
 const robots = !isProduction || noindex ? 'noindex, nofollow' : undefined;
 const basePath = baseUrl === '/' ? '' : baseUrl.replace(/\/$/, '');
 const routePath = basePath && Astro.url.pathname.startsWith(basePath)
@@ -25,7 +28,7 @@ const canonical = Astro.site && isProduction && !noindex
 ---
 
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" style={themeStyle}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

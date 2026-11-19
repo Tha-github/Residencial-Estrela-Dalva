@@ -1,0 +1,65 @@
+---
+/** Painel estático do Estrela Dalva; autenticação e publicações passam pelo Worker. */
+import { getImage } from 'astro:assets';
+import '../../../src/admin-kit/admin.css';
+import { getContent } from '../../../src/lib/content/load';
+import { resolveImage } from '../../../src/lib/images';
+
+const content = getContent();
+const paths = [...new Set([content.hero.image?.src, ...content.gallery.map((image) => image.src)].filter((value): value is string => Boolean(value)))];
+const thumbs = Object.fromEntries(await Promise.all(paths.map(async (path) => {
+  const image = await getImage({ src: resolveImage(path), width: 640, format: 'webp', quality: 70 });
+  return [path, image.src];
+})));
+const apiUrl = (import.meta.env.PUBLIC_ADMIN_API_URL ?? '').replace(/\/$/, '');
+const apiOrigin = (() => { try { return apiUrl ? new URL(apiUrl).origin : ''; } catch { return ''; } })();
+const csp = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' blob: data:",
+  `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''}`,
+  "font-src 'self'",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'none'",
+].join('; ');
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content={csp} />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="data:," />
+    <title>Painel · Residencial Estrela Dalva</title>
+  </head>
+  <body>
+    <div id="admin" data-api={apiOrigin ? apiUrl : ''} data-thumbs={JSON.stringify(thumbs)}>
+      <noscript>Ative o JavaScript para usar o painel.</noscript>
+    </div>
+    <script>
+      import { startAdmin } from '../../../src/admin-kit/client/app';
+      import { estrelaDalvaPreview } from '../../../src/admin-sites/estrela-dalva-preview';
+      import { estrelaDalvaSpec } from '../../../src/admin-sites/estrela-dalva';
+      import { residencialSchema } from '../../../src/lib/content/schema';
+
+      const root = document.getElementById('admin')!;
+      startAdmin(root, {
+        spec: estrelaDalvaSpec,
+        apiBase: root.dataset.api ?? '',
+        thumbs: JSON.parse(root.dataset.thumbs ?? '{}'),
+        preview: estrelaDalvaPreview,
+        validate(content) {
+          const result = residencialSchema.safeParse(content);
+          return result.success
+            ? []
+            : result.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message }));
+        },
+      });
+    </script>
+  </body>
+</html>

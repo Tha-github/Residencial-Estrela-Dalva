@@ -10,10 +10,11 @@ import Section from '../ui/Section.astro';
 
 interface Props {
   content: Residencial;
+  title: string;
   tone: 'default' | 'alt';
 }
 
-const { content, tone } = Astro.props;
+const { content, title, tone } = Astro.props;
 const { practical: p, contact } = content;
 
 const tiles: Array<{ icon: IconName; label: string; value: string; note: string }> = [];
@@ -24,7 +25,7 @@ const hasDirect = Boolean(contact.whatsapp || contact.email);
 const emailSubject = `Hospedagem no ${content.name}`;
 ---
 
-<Section align="center" id={SECTION_IDS.practical} eyebrow="Informações práticas" title="Bom saber *antes de chegar*" tone={tone}>
+<Section align="center" id={SECTION_IDS.practical} eyebrow="Informações práticas" title={title} tone={tone}>
   <ul class="info" role="list">
     {
       tiles.map((t) => (

@@ -23,12 +23,17 @@ import { assertReadyForLaunch, LaunchBlockedError } from '../../src/lib/content/
 
 const real = parseContent(raw);
 const full = parseContent(devFixture);
+const withoutListings = parseContent({
+  ...raw,
+  gallery: [],
+  booking: { ...raw.booking, booking: null, airbnb: null },
+});
 
 describe('visibilidade das seções', () => {
-  it('conteúdo atual: mostra o que está confirmado; galeria só com fotos', () => {
+  it('conteúdo atual: mostra as seções já preenchidas', () => {
     expect(getVisibility(real)).toEqual({
       loft: true,
-      gallery: false,
+      gallery: true,
       sleeping: true,
       amenities: true,
       location: true,
@@ -58,17 +63,17 @@ describe('visibilidade das seções', () => {
 });
 
 describe('plataformas de reserva', () => {
-  it('sem links, não há plataformas ativas (nada de botão sem destino)', () => {
-    expect(getBookingPlatforms(real)).toEqual([]);
+  it('links confirmados aparecem como plataformas ativas', () => {
+    expect(getBookingPlatforms(real).map((p) => p.id)).toEqual(['booking', 'airbnb']);
   });
 
-  it('prévia: Booking.com e Airbnb aparecem como pendências, sem URL; Decolar não', () => {
-    const slots = getPlatformSlots(real, true);
+  it('sem links, a prévia mostra Booking.com e Airbnb como pendências', () => {
+    const slots = getPlatformSlots(withoutListings, true);
     expect(slots.map((s) => [s.id, s.url])).toEqual([
       ['booking', null],
       ['airbnb', null],
     ]);
-    expect(getPlatformSlots(real, false)).toEqual([]);
+    expect(getPlatformSlots(withoutListings, false)).toEqual([]);
   });
 
   it('ordem fixa e gramática correta (no Booking.com / na Decolar)', () => {
@@ -116,7 +121,7 @@ describe('formatação', () => {
   });
 
   it('foto por grupo: primeira cadastrada do grupo, ou null', () => {
-    expect(photoOf(real, 'mezanino')).toBeNull();
+    expect(photoOf(real, 'mezanino')?.src).toContain('Quarto claro');
     expect(photoOf(full, 'mezanino')?.src).toBe('/dev/exemplo-04.jpg');
   });
 });
@@ -137,27 +142,34 @@ describe('perguntas frequentes', () => {
     expect(answer(/cozinha/)).toContain('air fryer');
   });
 
-  it('sem links de plataforma, reserva fala só do contato direto', () => {
-    expect(answer(/reserva/)).toBe(
-      'Você pode reservar diretamente com o proprietário, por WhatsApp e e-mail. As opções estão na seção de reservas.',
-    );
-    expect(getFaq(full).find((f) => /reserva/.test(f.question))?.answer).toContain('Booking.com, Airbnb e Decolar');
+  it('mantém as perguntas e respostas que o proprietário pode editar', () => {
+    expect(answer(/reserva/)).toContain('Booking.com e Airbnb');
+    expect(getFaq(full).find((f) => /reserva/.test(f.question))?.answer).toContain('Booking.com e Airbnb');
   });
 
   it('não inventa políticas: sem perguntas sobre cancelamento, animais, estacionamento ou taxas', () => {
     expect(faq.some((f) => /cancel|animal|pet|estacion|taxa|toalha|roupa de cama/i.test(f.question))).toBe(false);
   });
 
-  it('dado ausente remove a pergunta', () => {
+  it('as respostas cadastradas permanecem disponíveis para edição independente', () => {
     const noTimes = parseContent({ ...raw, practical: { ...raw.practical, checkIn: null, checkOut: null } });
-    expect(getFaq(noTimes).some((f) => /check-/.test(f.question))).toBe(false);
+    expect(getFaq(noTimes).some((f) => /check-in/.test(f.question))).toBe(true);
   });
 });
 
 describe('trava de lançamento', () => {
-  it('bloqueia produção com dados obrigatórios pendentes (galeria e links das plataformas)', () => {
+  it('libera a produção com galeria e plataformas preenchidas', () => {
+    expect(() => assertReadyForLaunch(real)).not.toThrow();
+  });
+
+  it('bloqueia quando faltam as fotos da galeria e os links de reserva', () => {
+    const incomplete = parseContent({
+      ...raw,
+      gallery: [],
+      booking: { ...raw.booking, booking: null, airbnb: null },
+    });
     try {
-      assertReadyForLaunch(real);
+      assertReadyForLaunch(incomplete);
       expect.unreachable();
     } catch (err) {
       expect(err).toBeInstanceOf(LaunchBlockedError);

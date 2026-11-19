@@ -36,8 +36,8 @@ const emailSubject = `Disponibilidade · ${content.name}`;
   align="center"
   id={SECTION_IDS.booking}
   eyebrow="Reservas"
-  title="Consulte a disponibilidade *e reserve*"
-  intro="Escolha a plataforma de sua preferência ou fale diretamente com o proprietário."
+  title={content.copy.bookingTitle}
+  intro={content.copy.bookingIntro}
   tone={tone}
 >
   {
@@ -53,7 +53,7 @@ const emailSubject = `Disponibilidade · ${content.name}`;
             </p>
             {pl.url ? (
               <Button href={pl.url} external size="lg" class="platform__btn">
-                Reservar {pl.inName}
+                {content.booking.buttonPrefix} {pl.inName}
               </Button>
             ) : (
               <p class="platform__pending" role="note">

@@ -10,18 +10,19 @@ import Section from '../ui/Section.astro';
 
 interface Props {
   amenities: Residencial['amenities'];
+  copy: Residencial['copy'];
   tone: 'default' | 'alt';
 }
 
-const { amenities, tone } = Astro.props;
+const { amenities, copy, tone } = Astro.props;
 ---
 
 <Section
   align="center"
   id={SECTION_IDS.amenities}
   eyebrow="Estrutura"
-  title="Tudo o que você precisa, *já no loft*"
-  intro="Comodidades confirmadas pelo proprietário, organizadas por ambiente."
+  title={copy.amenitiesTitle}
+  intro={copy.amenitiesIntro}
   tone={tone}
 >
   <ul class="amenities" role="list">

@@ -57,18 +57,21 @@ describe('conteúdo do residencial', () => {
 });
 
 describe('pendências', () => {
-  it('lista os dados ainda não fornecidos', () => {
+  it('lista os dados opcionais ainda não fornecidos', () => {
     const items = getPendingItems(parseContent(raw));
     const fields = items.map((i) => i.field);
-    expect(fields).toContain('booking.booking');
-    expect(fields).toContain('gallery');
-    expect(fields).toContain('location.mapsUrl');
+    expect(fields).toContain('location.address');
+    expect(fields).toContain('practical.rules');
+    expect(fields).not.toContain('booking.booking');
+    expect(fields).not.toContain('booking.airbnb');
+    expect(fields).not.toContain('gallery');
+    expect(fields).not.toContain('location.mapsUrl');
   });
 
   it('remove a pendência quando o dado é preenchido', () => {
     const data = clone();
-    (data.booking as Record<string, unknown>).airbnb = 'https://www.airbnb.com.br/rooms/1';
+    (data.location as Record<string, unknown>).address = 'Rua de exemplo, 100';
     const fields = getPendingItems(parseContent(data)).map((i) => i.field);
-    expect(fields).not.toContain('booking.airbnb');
+    expect(fields).not.toContain('location.address');
   });
 });

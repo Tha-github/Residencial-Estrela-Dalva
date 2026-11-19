@@ -153,6 +153,13 @@ const titleParts = (title ?? name).split(/\*(.+?)\*/);
       linear-gradient(160deg, var(--sea-800) 0%, var(--sea-950) 70%);
   }
 
+  @media (max-width: 767.98px) {
+    .hero__stage {
+      align-items: start;
+      padding: var(--space-5) var(--space-3) calc(var(--space-3) + var(--strip-overlap, 0px));
+    }
+  }
+
   @media (min-width: 768px) {
     .hero__stage {
       align-items: center;

@@ -1,14 +1,13 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('página real (dados confirmados)', () => {
-  test('mostra as seções do loft; galeria só com fotos; plataformas só com link', async ({ page }) => {
+  test('mostra as seções, as fotos e os links de reserva cadastrados', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     for (const id of ['o-loft', 'acomodacao', 'comodidades', 'localizacao', 'experiencia', 'informacoes', 'reservas', 'duvidas']) {
       await expect(page.locator(`#${id}`)).toBeVisible();
     }
-    await expect(page.locator('#fotos')).toHaveCount(0);
-    // Sem links das plataformas cadastrados: nenhum link para Booking.com ou Airbnb.
-    expect(await page.locator('a[href*="booking.com"], a[href*="airbnb."]').count()).toBe(0);
+    await expect(page.locator('#fotos')).toBeVisible();
+    expect(await page.locator('a[href*="booking.com"], a[href*="airbnb."]').count()).toBeGreaterThanOrEqual(2);
     // Nenhum link vazio.
     expect(await page.evaluate(() => document.querySelectorAll('a[href="#"], a:not([href])').length)).toBe(0);
   });

@@ -16,8 +16,7 @@ interface Props {
 }
 
 const { content, tone } = Astro.props;
-const { sleeping, practical, property } = content;
-const loft = property.type.toLowerCase();
+const { sleeping, practical } = content;
 const bedIcon: Record<string, IconName> = { casal: 'bed-double', solteiro: 'bed-single', 'sofa-cama': 'sofa' };
 const guests = practical.maxGuests;
 
@@ -31,8 +30,8 @@ const beds = sleeping.flatMap((lvl) =>
   align="center"
   id={SECTION_IDS.sleeping}
   eyebrow="Acomodação"
-  title={`Onde cada um *vai dormir*`}
-  intro={`Um ${loft} com mezanino: os ambientes são distribuídos em dois níveis, sem quartos separados.`}
+  title={content.copy.sleepingTitle}
+  intro={content.copy.sleepingIntro}
   tone={tone}
 >
   <ul class="beds" role="list">

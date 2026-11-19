@@ -23,11 +23,12 @@ import Section from '../ui/Section.astro';
 
 interface Props {
   images: Image[];
+  title?: string;
   tone?: 'default' | 'alt';
   clientPreview?: boolean;
 }
 
-const { images, tone, clientPreview = false } = Astro.props;
+const { images, title = 'Fotos do *loft*', tone, clientPreview = false } = Astro.props;
 const ordered = sortGallery(images);
 const count = ordered.length;
 
@@ -67,7 +68,7 @@ const label = (i: number, img: Image) =>
   `Ampliar foto ${i + 1} de ${count}${img.alt ? `: ${img.alt}` : ''}`;
 ---
 
-<Section id={SECTION_IDS.gallery} eyebrow="Galeria" title="Fotos do *loft*" width="wide" align="center" tone={tone}>
+<Section id={SECTION_IDS.gallery} eyebrow="Galeria" title={title} width="wide" align="center" tone={tone}>
   {count === 0 && clientPreview ? (
     <div class="carousel" data-carousel>
       <ul class="carousel__track" role="list" aria-label="Espaços reservados para fotos" tabindex="0" data-track>

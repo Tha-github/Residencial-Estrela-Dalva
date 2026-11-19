@@ -13,12 +13,13 @@ interface Props {
   items: FaqItem[];
   contact: Residencial['contact'];
   tone: 'default' | 'alt';
+  title: string;
 }
 
-const { items, contact, tone } = Astro.props;
+const { items, contact, tone, title } = Astro.props;
 ---
 
-<Section align="center" id={SECTION_IDS.faq} eyebrow="Dúvidas frequentes" title="Perguntas *sobre a estadia*" tone={tone}>
+<Section align="center" id={SECTION_IDS.faq} eyebrow="Dúvidas frequentes" title={title} tone={tone}>
   <div class="faq">
     <div class="faq__list">
       {

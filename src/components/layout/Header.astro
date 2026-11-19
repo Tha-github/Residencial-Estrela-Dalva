@@ -206,15 +206,21 @@ const homeUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_UR
      pintura — sem salto de layout quando o script carrega. */
   @media (max-width: 1023.98px) and (scripting: enabled) {
     .site-nav {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
       display: none;
+      overflow-y: auto;
+      padding: calc(var(--header-height) + var(--space-8)) var(--gutter) var(--space-8);
+      background: var(--white);
     }
     .site-header[data-open] .site-nav {
       display: block;
-      padding-bottom: var(--space-4);
     }
     .site-nav ul {
       flex-direction: column;
       white-space: normal;
+      gap: var(--space-3);
     }
     .site-nav a {
       font-size: var(--text-lg);
@@ -243,6 +249,13 @@ const homeUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_UR
     background: none;
     color: var(--color-heading);
     cursor: pointer;
+  }
+
+  @media (max-width: 1023.98px) and (scripting: enabled) {
+    .site-header__toggle {
+      position: relative;
+      z-index: 2;
+    }
   }
 
   .site-header__toggle :global(.toggle-close),

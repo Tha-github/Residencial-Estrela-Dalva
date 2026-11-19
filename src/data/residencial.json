@@ -11,8 +11,7 @@
     "city": "Florianópolis",
     "state": "Santa Catarina",
     "stateCode": "SC",
-    "address": null,
-    "mapsUrl": null,
+    "mapsUrl": "https://maps.app.goo.gl/knRqiGgqQgxssgXj9",
     "nearby": ["Mercados", "Restaurantes", "Bares", "Shopping", "Farmácias"]
   },
   "distances": [
@@ -22,6 +21,15 @@
   "hero": {
     "title": "Seu refúgio em Florianópolis, *pertinho de tudo*.",
     "subtitle": "Um loft aconchegante nos Ingleses, com espaço para até quatro pessoas, estrutura completa e tudo o que você precisa para aproveitar seus dias na praia.",
+    "primaryLabel": "Consultar disponibilidade",
+    "primaryTarget": "booking",
+    "secondaryLabel": "Conhecer o loft",
+    "secondaryTarget": "loft",
+    "highlights": [
+      { "icon": "users", "text": "Até 4 hóspedes" },
+      { "icon": "waves", "text": "450 m da praia" },
+      { "icon": "bag", "text": "200 m do Centrinho" }
+    ],
     "image": {
       "src": "/fotos/banner.png",
       "alt": "Vista do alto de uma praia com mar azul-turquesa, longa faixa de areia e costão de pedras em primeiro plano",
@@ -39,7 +47,7 @@
     { "title": "Mezanino no piso superior", "text": "Uma cama de casal e uma de solteiro no nível de cima.", "icon": "levels" },
     { "title": "Até quatro pessoas", "text": "Mezanino no piso superior e sofá-cama no piso inferior.", "icon": "users" },
     { "title": "Cozinha completa", "text": "Fogão a gás, micro-ondas, air fryer, geladeira e utensílios.", "icon": "pot" },
-    { "title": "Área externa com churrasqueira", "text": null, "icon": "flame" }
+    { "title": "Área externa com churrasqueira", "icon": "flame" }
   ],
   "sleeping": [
     {
@@ -52,7 +60,6 @@
     },
     {
       "level": "Piso inferior",
-      "detail": null,
       "beds": [{ "type": "sofa-cama", "label": "Um sofá-cama" }]
     }
   ],
@@ -86,7 +93,44 @@
       { "title": "Churrasco na área externa", "text": "Encerre o dia na churrasqueira, ao ar livre.", "icon": "flame" }
     ]
   },
-  "gallery": [],
+  "gallery": [
+    { "src": "/fotos/Sala Moderna com Cozinha Integrada.png", "alt": "Sala moderna integrada à cozinha", "group": "integrado" },
+    { "src": "/fotos/Sala Moderna com Escada de Vidro.png", "alt": "Sala moderna com escada de vidro", "group": "integrado" },
+    { "src": "/fotos/Sala contemporânea com escada e TV preta.png", "alt": "Sala contemporânea com escada e televisão", "group": "integrado" },
+    { "src": "/fotos/Sala moderna com sofá azul e TV.png", "alt": "Sala com sofá azul e televisão", "group": "integrado" },
+    { "src": "/fotos/Cozinha Moderna com Sala de Jantar.png", "alt": "Cozinha moderna com sala de jantar", "group": "cozinha" },
+    { "src": "/fotos/Cozinha Moderna com Eletrodomésticos em Aço Inox.png", "alt": "Cozinha com eletrodomésticos em aço inox", "group": "cozinha" },
+    { "src": "/fotos/Cozinha moderna com plantas e eletrodomésticos.png", "alt": "Cozinha com plantas e eletrodomésticos", "group": "cozinha" },
+    { "src": "/fotos/Quarto claro com camas e decoração colorida.png", "alt": "Quarto claro com camas e decoração colorida", "group": "mezanino" },
+    { "src": "/fotos/Varanda Aconchegante com Churrasqueira.png", "alt": "Varanda com churrasqueira", "group": "externa" },
+    { "src": "/fotos/Varanda Elegante com Mesa e Cadeiras de Prata.png", "alt": "Varanda com mesa e cadeiras", "group": "externa" },
+    { "src": "/fotos/Lavanderia externa moderna com plantas.png", "alt": "Lavanderia externa com plantas", "group": "externa" },
+    { "src": "/fotos/Banheiro Moderno com Box de Vidro.png", "alt": "Banheiro moderno com box de vidro", "group": "detalhes" },
+    { "src": "/fotos/Calçadão Noturno dos Ingleses.png", "alt": "Calçadão dos Ingleses à noite", "group": "regiao" }
+  ],
+  "copy": {
+    "galleryTitle": "Fotos do *loft*",
+    "sleepingTitle": "Onde cada um *vai dormir*",
+    "sleepingIntro": "Um loft com mezanino: os ambientes são distribuídos em dois níveis, sem quartos separados.",
+    "amenitiesTitle": "Tudo o que você precisa, *já no loft*",
+    "amenitiesIntro": "Comodidades confirmadas pelo proprietário, organizadas por ambiente.",
+    "locationTitle": "Tudo por perto, para aproveitar *melhor suas férias*.",
+    "locationIntro": "Aproveite a praticidade de estar próximo ao mar e ao Centrinho dos Ingleses, com acesso fácil a mercados, restaurantes, bares, shopping e farmácias.",
+    "practicalTitle": "Bom saber *antes de chegar*",
+    "faqTitle": "Perguntas *sobre a estadia*",
+    "bookingTitle": "Consulte a disponibilidade *e reserve*",
+    "bookingIntro": "Escolha a plataforma de sua preferência ou fale diretamente com o proprietário."
+  },
+  "faq": [
+    { "question": "Quantas pessoas o loft acomoda?", "answer": "Até quatro pessoas." },
+    { "question": "Como são distribuídas as camas?", "answer": "No piso superior (mezanino): uma cama de casal e uma cama de solteiro. No piso inferior: um sofá-cama. É um loft com mezanino, não há quartos separados." },
+    { "question": "Qual é a distância até a Praia dos Ingleses?", "answer": "Aproximadamente 450 metros." },
+    { "question": "Qual é a distância até o Centrinho dos Ingleses?", "answer": "Aproximadamente 200 metros." },
+    { "question": "Qual é o horário de check-in?", "answer": "A partir das 14h." },
+    { "question": "Qual é o horário de check-out?", "answer": "Até as 11h." },
+    { "question": "O loft possui cozinha equipada?", "answer": "Sim. Fogão a gás, micro-ondas, air fryer, geladeira, sanduicheira, liquidificador, jarra elétrica e utensílios de cozinha." },
+    { "question": "Como posso fazer uma reserva?", "answer": "Você pode reservar pelas plataformas Booking.com e Airbnb ou diretamente com o proprietário por WhatsApp e e-mail. As opções estão na seção de reservas." }
+  ],
   "practical": {
     "maxGuests": 4,
     "checkIn": "14:00",
@@ -94,14 +138,22 @@
     "rules": []
   },
   "booking": {
-    "booking": null,
-    "airbnb": null,
-    "decolar": null
+    "booking": "https://www.booking.com/hotel/br/residencial-estrela-dalva.ca.html?aid=2440491&label=mkt123sc-7741d7d5-53b2-4487-b4ee-c3d450553808-Share-xFnxVe%401795091431&sid=adfc183a8b71169f03b35162ffafb480&checkin=2026-11-19&checkout=2026-11-20&dest_id=-643337&dest_type=city&dist=0&group_adults=2&group_children=0&hapos=1&hpos=1&no_rooms=1&req_adults=2&req_children=0&room1=A%2CA&sb_price_type=total&soh=1&sr_order=popularity&srepoch=1795091454&srpvid=5dcc0e63a55853cf90f3844d22f5958c&type=total&ucfs=1&#no_availability_msg",
+    "airbnb": "https://www.airbnb.com.br/rooms/33344463?adults=1&s=67&unique_share_id=775a6905-6431-4eb5-8e21-31277ab4ccd3",
+    "decolar": null,
+    "buttonPrefix": "Reservar"
   },
   "contact": {
     "instagram": null,
     "whatsapp": "5548999471321",
     "whatsappMessage": "Olá! Tenho interesse em conhecer a disponibilidade do Residencial Estrela Dalva para uma hospedagem.",
     "email": "pereimamarcelo@gmail.com"
+  },
+  "theme": {
+    "primary": "#0f4f6d",
+    "secondary": "#0b3346",
+    "accent": "#a24f28",
+    "background": "#faf7f2",
+    "text": "#1e2326"
   }
 }
