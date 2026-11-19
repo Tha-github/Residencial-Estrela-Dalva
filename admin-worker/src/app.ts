@@ -4,7 +4,7 @@
  * Único lugar com acesso ao GitHub. O navegador nunca vê o token.
  *
  * Rotas (todas sob /api, JSON):
- *   POST /api/login      { accessKey, password }      → { token, expiresAt }
+ *   POST /api/login      { password }                 → { token, expiresAt }
  *   GET  /api/session                                  → 204 se a sessão vale
  *   GET  /api/content                                  → { content, sha, photos }
  *   GET  /api/photo?path=<foto>                        → bytes da foto (prévia)
@@ -36,7 +36,6 @@ import { checkImage } from './images';
 
 export interface Env {
   GITHUB_TOKEN?: string;
-  ADMIN_ACCESS_KEY?: string;
   ADMIN_PASSWORD_HASH?: string;
   PROVISIONING_KEY?: string;
   CONFIG_ENCRYPTION_KEY?: string;
@@ -66,7 +65,6 @@ export interface SiteAdapter {
 }
 
 interface PanelConfig {
-  accessKey: string;
   passwordHash: string;
   githubToken: string;
 }
@@ -113,10 +111,9 @@ async function readConfig(env: Env): Promise<PanelConfig | null> {
       return decryptConfig(row.ciphertext, env.CONFIG_ENCRYPTION_KEY);
     }
   }
-  if (env.GITHUB_TOKEN && env.ADMIN_ACCESS_KEY && env.ADMIN_PASSWORD_HASH) {
+  if (env.GITHUB_TOKEN && env.ADMIN_PASSWORD_HASH) {
     return {
       githubToken: env.GITHUB_TOKEN,
-      accessKey: env.ADMIN_ACCESS_KEY,
       passwordHash: env.ADMIN_PASSWORD_HASH,
     };
   }
@@ -243,11 +240,10 @@ export async function handle(
         await new Promise((r) => setTimeout(r, 700));
         throw new HttpError(401, 'Código de configuração incorreto.');
       }
-      const accessKey = String(body.accessKey ?? '');
       const password = String(body.password ?? '');
       const githubToken = String(body.githubToken ?? '').trim();
-      if (accessKey.length < 20 || accessKey.length > 256 || password.length < 10 || password.length > 256) {
-        throw new HttpError(422, 'Use uma chave com pelo menos 20 caracteres e uma senha com 10 a 256 caracteres.');
+      if (password.length < 10 || password.length > 256) {
+        throw new HttpError(422, 'Use uma senha com 10 a 256 caracteres.');
       }
       if (!githubToken || githubToken.length > 512) throw new HttpError(422, 'Informe um token GitHub válido.');
 
@@ -266,7 +262,7 @@ export async function handle(
       }
 
       const ciphertext = await encryptConfig(
-        { accessKey, passwordHash: await hashPassword(password), githubToken },
+        { passwordHash: await hashPassword(password), githubToken },
         env.CONFIG_ENCRYPTION_KEY,
       );
       try {
@@ -290,18 +286,13 @@ export async function handle(
       if (!config || !env.SESSION_SECRET) {
         throw new HttpError(503, 'O acesso ao painel ainda não foi configurado.');
       }
-      const accessKey = String(body.accessKey ?? '');
-      const expectedKey = new TextEncoder().encode(config.accessKey);
-      const submittedKey = new TextEncoder().encode(accessKey);
-      const keyMatches = timingSafeEqual(submittedKey, expectedKey);
       const passwordMatches = await verifyPassword(
         String(body.password ?? ''),
         config.passwordHash,
       );
-      const ok = keyMatches && passwordMatches;
-      if (!ok) {
+      if (!passwordMatches) {
         await new Promise((r) => setTimeout(r, 700)); // desestimula tentativas em série
-        throw new HttpError(401, 'Chave de acesso ou senha incorreta.');
+        throw new HttpError(401, 'Senha incorreta.');
       }
       const hours = Math.min(Math.max(Number(env.SESSION_HOURS ?? 8) || 8, 1), 24);
       return json(await createSession(env.SESSION_SECRET, site.id, hours), 200, cors);

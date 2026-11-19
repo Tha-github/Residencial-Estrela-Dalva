@@ -121,7 +121,6 @@ function fakeFetch(
 
 // ---------- utilitários ----------
 let env: Env;
-const ACCESS_KEY = 'chave-de-acesso-para-testes';
 const call = (method: string, path: string, body?: unknown, headers: Record<string, string> = {}) =>
   handle(
     new Request(`https://admin.example.workers.dev${path}`, {
@@ -139,7 +138,7 @@ const call = (method: string, path: string, body?: unknown, headers: Record<stri
   );
 
 async function login() {
-  const r = await call('POST', '/api/login', { accessKey: ACCESS_KEY, password: PASSWORD });
+  const r = await call('POST', '/api/login', { password: PASSWORD });
   return ((await r.json()) as { token: string }).token;
 }
 
@@ -157,7 +156,6 @@ function png(w = 400, h = 300) {
 beforeAll(async () => {
   env = {
     GITHUB_TOKEN: 'gh-token-secreto',
-    ADMIN_ACCESS_KEY: ACCESS_KEY,
     ADMIN_PASSWORD_HASH: await hashPassword(PASSWORD, 1000),
     SESSION_SECRET: 'x'.repeat(48),
     GITHUB_REPO: REPO,
@@ -183,10 +181,55 @@ beforeEach(() => {
 });
 
 describe('login e sessão', () => {
+  it('exige o código de ativação, grava somente uma vez e permite entrar com a senha cadastrada', async () => {
+    let ciphertext: string | undefined;
+    const configEnv: Env = {
+      ...env,
+      GITHUB_TOKEN: undefined,
+      ADMIN_PASSWORD_HASH: undefined,
+      PROVISIONING_KEY: 'codigo-de-ativacao-de-teste',
+      CONFIG_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64url'),
+      CONFIG: {
+        prepare(query) {
+          return {
+            bind(_id, value) {
+              return {
+                async first<T>() { return ciphertext ? { ciphertext } as T : null; },
+                async run() {
+                  if (!query.startsWith('INSERT') || ciphertext) throw new Error('registro duplicado');
+                  ciphertext = String(value);
+                  return { success: true };
+                },
+              };
+            },
+          };
+        },
+      },
+    };
+    const submit = (path: string, body: Record<string, string>) => handle(
+      new Request(`https://admin.example.workers.dev/api/${path}`, {
+        method: 'POST',
+        headers: { Origin: ORIGIN, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
+      configEnv,
+      site,
+      async () => Response.json({ permissions: { push: true } }),
+    );
+    const setup = { githubToken: 'gh-token-secreto', password: PASSWORD };
+    expect((await submit('setup', setup)).status).toBe(401);
+    expect(ciphertext).toBeUndefined();
+    const authorizedSetup = { ...setup, provisioningCode: configEnv.PROVISIONING_KEY! };
+    expect((await submit('setup', authorizedSetup)).status).toBe(201);
+    expect(ciphertext).toBeTruthy();
+    expect(ciphertext).not.toContain(setup.githubToken);
+    expect((await submit('setup', authorizedSetup)).status).toBe(409);
+    expect((await submit('login', { password: PASSWORD })).status).toBe(200);
+  });
+
   it('senha errada → 401; certa → token; token nunca é o do GitHub', async () => {
-    expect((await call('POST', '/api/login', { accessKey: ACCESS_KEY, password: 'errada' })).status).toBe(401);
-    expect((await call('POST', '/api/login', { accessKey: 'chave-errada', password: PASSWORD })).status).toBe(401);
-    const r = await call('POST', '/api/login', { accessKey: ACCESS_KEY, password: PASSWORD });
+    expect((await call('POST', '/api/login', { password: 'errada' })).status).toBe(401);
+    const r = await call('POST', '/api/login', { password: PASSWORD });
     expect(r.status).toBe(200);
     const text = await r.text();
     expect(text).not.toContain('gh-token-secreto');
@@ -212,7 +255,7 @@ describe('login e sessão', () => {
       new Request('https://x/api/login', {
         method: 'POST',
         headers: { Origin: ORIGIN },
-        body: JSON.stringify({ accessKey: ACCESS_KEY, password: PASSWORD }),
+        body: JSON.stringify({ password: PASSWORD }),
       }),
       short,
       site,
@@ -234,7 +277,7 @@ describe('login e sessão', () => {
     const r = await call(
       'POST',
       '/api/login',
-      { accessKey: ACCESS_KEY, password: PASSWORD },
+      { password: PASSWORD },
       { Origin: 'https://evil.example' },
     );
     expect(r.status).toBe(403);

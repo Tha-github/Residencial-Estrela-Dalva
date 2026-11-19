@@ -82,10 +82,10 @@ export class Api {
     return body as T;
   }
 
-  async login(accessKey: string, password: string) {
+  async login(password: string) {
     const r = await this.call<{ token: string; expiresAt: number }>('/api/login', {
       method: 'POST',
-      body: JSON.stringify({ accessKey, password }),
+      body: JSON.stringify({ password }),
     });
     this.token = r.token;
   }
@@ -94,7 +94,7 @@ export class Api {
     return this.call<{ configured: boolean }>('/api/setup/status');
   }
 
-  setup(values: { provisioningCode: string; githubToken: string; accessKey: string; password: string }) {
+  setup(values: { provisioningCode: string; githubToken: string; password: string }) {
     return this.call<{ configured: boolean }>('/api/setup', {
       method: 'POST',
       body: JSON.stringify(values),

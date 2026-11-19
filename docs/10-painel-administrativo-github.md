@@ -4,7 +4,7 @@ O painel em `/admin/` segue o padrão Top Site Admin do Residencial Ametista. A 
 
 ## Configuração inicial pela tela
 
-Na primeira visita, `/admin/` mostra o botão **Configurar chave secreta e senha**. O formulário pede o código de provisionamento do Worker, um token GitHub fine-grained, a chave de acesso escolhida pelo proprietário e uma senha. Os dados são enviados ao Worker por HTTPS. O token, a chave e o hash da senha são armazenados cifrados com AES-GCM no D1; o Worker nunca devolve o token ao navegador.
+O cadastro inicial abre pelo link privado de ativação. O formulário pede um token GitHub fine-grained e uma senha. Os dados são enviados ao Worker por HTTPS. O token e o hash da senha são armazenados cifrados com AES-GCM no D1. Nos acessos seguintes, o painel pede apenas a senha.
 
 A configuração só pode ser feita uma vez. O código de provisionamento é guardado como secret no Worker e funciona como autorização para o cadastro inicial.
 
@@ -30,6 +30,8 @@ npm run dev -- --host 127.0.0.1
 ```
 
 No desenvolvimento, o Astro encaminha `/__admin-worker/api/` para `127.0.0.1:5687` quando `PUBLIC_ADMIN_API_URL` não está definida. Antes de abrir o painel, consulte `http://127.0.0.1:4321/__admin-worker/api/setup/status`. Com um banco local recém-migrado, a resposta é `{"configured":false}`.
+
+Para ativar o painel local, acrescente `#ativar=` seguido pelo valor de `PROVISIONING_KEY` de `admin-worker/.dev.vars` ao endereço de `/admin/`.
 
 Para rodar junto com o Ametista, use a porta `4322` para o Astro e passe essa origem ao Worker. Em terminais separados:
 
@@ -85,7 +87,7 @@ npx wrangler@4.164.0 secret put SESSION_SECRET --config admin-worker/wrangler.js
 npm run admin:deploy
 ```
 
-O gerador imprime um código de provisionamento, uma chave AES-256 e uma chave de sessão. Cadastre cada valor com o comando correspondente e guarde o `PROVISIONING_KEY` em um gerenciador de senhas; ele será usado no formulário inicial de `/admin/`. Nunca coloque esses valores em arquivos versionados ou variáveis `PUBLIC_*`.
+O gerador imprime um código de provisionamento, uma chave AES-256 e uma chave de sessão. Cadastre cada valor com o comando correspondente e guarde o `PROVISIONING_KEY` em um gerenciador de senhas para montar o link privado. Mantenha esses valores fora de arquivos versionados e variáveis `PUBLIC_*`.
 
 O deploy informa uma URL semelhante a `https://estrela-dalva-admin.<conta>.workers.dev`.
 
@@ -95,20 +97,15 @@ No repositório `Tha-github/Residencial-Estrela-Dalva`, abra **Settings → Secr
 
 ### 4. Abrir `/admin/` e concluir o cadastro
 
-Crie um token GitHub fine-grained restrito somente ao repositório `Tha-github/Residencial-Estrela-Dalva`, com `Contents: Read and write` e `Actions: Read-only`. Abra `https://tha-github.github.io/Residencial-Estrela-Dalva/admin/`, clique em **Configurar chave secreta e senha** e informe:
+Crie um token GitHub fine-grained restrito ao repositório `Tha-github/Residencial-Estrela-Dalva`, com `Contents: Read and write` e `Actions: Read-only`. Abra o endereço publicado de `/admin/` com `#ativar=` seguido pelo valor de `PROVISIONING_KEY`. O link privado desta instalação fica em `.env.admin-activation`, na raiz do projeto.
 
-- o `PROVISIONING_KEY` criado no passo 2;
-- o token GitHub;
-- uma chave de acesso de pelo menos 20 caracteres;
-- uma senha de pelo menos 10 caracteres.
-
-O Worker valida se o token tem acesso de escrita ao repositório e salva a configuração no D1 cifrada. Depois disso, o cadastro inicial fica bloqueado e a tela passa a pedir somente chave de acesso e senha.
+Informe o token e escolha uma senha com pelo menos 10 caracteres. O Worker valida o código do link e o acesso de escrita do token antes de salvar a configuração cifrada no D1. Depois disso, o cadastro fica bloqueado e a tela passa a pedir somente a senha.
 
 ## Operação e recuperação
 
 - Cada publicação cria um commit com o conteúdo e as fotos novas; GitHub Actions publica o commit.
 - Se o conteúdo mudar no GitHub enquanto o painel estiver aberto, o Worker recusa a publicação conflitante. Recarregue e reaplique a mudança.
-- Para trocar ou recuperar a senha, chave ou token, remova a linha `estrela-dalva` da tabela `panel_config` no D1 e repita o cadastro pelo painel. O `PROVISIONING_KEY` continua necessário.
+- Para trocar ou recuperar a senha ou o token, remova a linha `estrela-dalva` da tabela `panel_config` no D1 e repita o cadastro pelo link privado.
 - Se o token GitHub expirar, gere outro com as mesmas permissões mínimas e faça novamente o cadastro inicial após remover a linha existente.
 - Logs técnicos ficam no painel Cloudflare do Worker `estrela-dalva-admin`; não registre credenciais nos logs.
 

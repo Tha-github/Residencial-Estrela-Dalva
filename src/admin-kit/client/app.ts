@@ -81,16 +81,12 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
 
   /* ------------------------------ login ------------------------------ */
 
+  const activationCode = new URLSearchParams(location.hash.slice(1)).get('ativar');
+  const clearActivation = () => {
+    if (activationCode) history.replaceState(history.state, '', location.pathname + location.search);
+  };
+
   function showLogin(message?: string, reauth = false) {
-    const keyId = 'admin-access-key';
-    const keyInput = h('input', {
-      id: keyId,
-      type: 'password',
-      class: 'inp',
-      autocomplete: 'off',
-      spellcheck: false,
-      required: true,
-    });
     const id = 'admin-password';
     const input = h('input', {
       id,
@@ -116,10 +112,8 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
         { class: 'login__lead' },
         reauth
           ? 'Sua sessão expirou. Entre de novo para continuar — suas alterações foram mantidas.'
-          : 'Digite sua chave de acesso e senha para editar o conteúdo do site.',
+          : 'Digite sua senha para editar o conteúdo do site.',
       ),
-      h('label', { class: 'fld__label', for: keyId }, 'Chave de acesso'),
-      keyInput,
       h('label', { class: 'fld__label', for: id }, 'Senha'),
       input,
       error,
@@ -131,7 +125,7 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
       button.textContent = 'Entrando…';
       error.hidden = true;
       try {
-        await api.login(keyInput.value, input.value);
+        await api.login(input.value);
         if (reauth && state) showApp();
         else await load();
       } catch (err) {
@@ -144,16 +138,17 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
       }
     });
     root.replaceChildren(h('main', { class: 'login' }, form));
-    keyInput.focus();
+    input.focus();
   }
 
   function showSetup(apiReady: boolean, message?: string) {
-    const open = h('button', { type: 'button', class: 'btn btn--primary btn--block' }, 'Configurar chave secreta e senha');
     const note = h(
       'p',
       { class: 'login__lead' },
       apiReady
-        ? 'Na primeira configuração, informe o código de provisionamento do Worker, o token GitHub e crie sua chave de acesso e senha.'
+        ? activationCode
+          ? 'Informe o token do GitHub e escolha a senha do painel.'
+          : 'Abra o link privado de ativação para fazer o primeiro cadastro.'
         : 'A interface está pronta. Para concluir a configuração, o painel precisa estar conectado ao Worker seguro.',
     );
     const error = h('p', { class: 'login__error', role: 'alert', hidden: !message }, message ?? '');
@@ -164,18 +159,15 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
       h('h1', { class: 'login__title' }, spec.siteName),
       note,
       error,
-      open,
     );
 
-    open.addEventListener('click', () => renderSetupForm(card, error, apiReady));
     root.replaceChildren(h('main', { class: 'login' }, card));
+    if (apiReady && activationCode) renderSetupForm(card, error, activationCode);
   }
 
-  function renderSetupForm(card: HTMLElement, error: HTMLElement, apiReady: boolean) {
+  function renderSetupForm(card: HTMLElement, error: HTMLElement, provisioningCode: string) {
     const fields = [
-      { id: 'admin-provisioning-code', label: 'Código secreto de provisionamento do Worker', autocomplete: 'off' },
       { id: 'admin-github-token', label: 'Token do GitHub', autocomplete: 'off' },
-      { id: 'admin-access-key', label: 'Chave de acesso do painel (mínimo de 20 caracteres)', autocomplete: 'new-password' },
       { id: 'admin-password', label: 'Senha do painel (mínimo de 10 caracteres)', autocomplete: 'new-password' },
     ];
     const inputs = fields.map(({ id, label, autocomplete }) => {
@@ -186,21 +178,12 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
         autocomplete,
         spellcheck: false,
         required: true,
-        minlength: id === 'admin-access-key' ? 20 : id === 'admin-password' ? 10 : undefined,
+        minlength: id === 'admin-password' ? 10 : undefined,
       });
       return { input, row: h('div', { class: 'fld' }, h('label', { class: 'fld__label', for: id }, label), input) };
     });
     const save = h('button', { type: 'submit', class: 'btn btn--primary btn--block' }, 'Salvar configuração');
-    const cancel = h('button', { type: 'button', class: 'btn btn--ghost btn--block' }, 'Voltar');
-    const form = h('form', { class: 'login__form' }, ...fields.map((_, i) => inputs[i]!.row), save, cancel);
-    if (!apiReady) {
-      save.disabled = true;
-      form.insertBefore(
-        h('p', { class: 'login__lead' }, 'O Worker ainda não está conectado. A configuração será enviada por HTTPS quando a URL dele for publicada.'),
-        form.firstChild,
-      );
-    }
-    cancel.addEventListener('click', () => showSetup(apiReady));
+    const form = h('form', { class: 'login__form' }, ...inputs.map(({ row }) => row), save);
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       save.disabled = true;
@@ -208,12 +191,12 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
       error.hidden = true;
       try {
         await api.setup({
-          provisioningCode: inputs[0]!.input.value,
-          githubToken: inputs[1]!.input.value,
-          accessKey: inputs[2]!.input.value,
-          password: inputs[3]!.input.value,
+          provisioningCode,
+          githubToken: inputs[0]!.input.value,
+          password: inputs[1]!.input.value,
         });
-        showLogin('Configuração concluída. Entre com sua chave de acesso e senha.');
+        clearActivation();
+        showLogin('Configuração concluída. Entre com sua senha.');
       } catch (err) {
         error.textContent = err instanceof ApiError ? err.message : ERR_GENERIC;
         error.hidden = false;
@@ -637,6 +620,7 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
   }
   void api.setupStatus().then(async ({ configured }) => {
     if (!configured) return showSetup(true);
+    clearActivation();
     if (await api.hasSession()) await load();
     else showLogin();
   }).catch((err: unknown) => {
