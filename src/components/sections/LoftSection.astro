@@ -103,6 +103,13 @@ const hasMedia = Boolean(lower || upper || clientPreview);
     max-width: var(--width-prose);
   }
 
+  @media (max-width: 767.98px) {
+    .loft__text > p {
+      margin-inline: auto;
+      text-align: center;
+    }
+  }
+
   .loft__features {
     display: grid;
     gap: var(--space-5);

@@ -18,7 +18,9 @@ interface Props {
 
 const { content, clientPreview = false } = Astro.props;
 const { experience } = content;
-const outdoor = photoOf(content, 'externa');
+const outdoor = content.gallery.find((image) =>
+  image.src === '/fotos/Varanda Elegante com Mesa e Cadeiras de Prata.png'
+) ?? photoOf(content, 'externa');
 const hasPhoto = Boolean(outdoor || clientPreview);
 ---
 

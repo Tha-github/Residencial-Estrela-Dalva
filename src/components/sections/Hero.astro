@@ -306,6 +306,22 @@ const titleParts = (title ?? name).split(/\*(.+?)\*/);
     margin-top: var(--space-2);
   }
 
+  @media (max-width: 767.98px) {
+    .hero__panel {
+      text-align: center;
+    }
+
+    .hero__eyebrow,
+    .hero__subtitle {
+      justify-self: center;
+    }
+
+    .hero__highlights,
+    .hero__actions {
+      justify-content: center;
+    }
+  }
+
   @media (max-width: 479.98px) {
     .hero__actions :global(.btn) {
       flex: 1 1 100%;

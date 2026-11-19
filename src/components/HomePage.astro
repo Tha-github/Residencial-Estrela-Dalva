@@ -50,7 +50,8 @@ interface Props {
 const { content, pageTitle, description, noindex = false, clientPreview = false } = Astro.props;
 const visible = getVisibility(content);
 // Na prévia do cliente, galeria aparece mesmo vazia (com quadros indicando as fotos).
-const display = { ...visible, gallery: visible.gallery || clientPreview, booking: visible.booking || clientPreview };
+const loftPhotos = content.gallery.filter((image) => image.group !== 'regiao');
+const display = { ...visible, gallery: loftPhotos.length > 0 || clientPreview, booking: visible.booking || clientPreview };
 const tone = getSectionTones(display);
 const toneOf = (key: keyof typeof tone) => (tone[key] === 'inverse' ? 'default' : tone[key]);
 const nav = getNavItems(display);
@@ -84,7 +85,7 @@ const heroSecondary = display.loft ? { href: targetHref[hero.secondaryTarget], l
   <QuickFacts content={content} />
 
   {display.loft && <LoftSection content={content} tone={toneOf('loft')} clientPreview={clientPreview} />}
-  {display.gallery && <GallerySection images={content.gallery} title={content.copy.galleryTitle} tone={toneOf('gallery')} clientPreview={clientPreview} />}
+  {display.gallery && <GallerySection images={loftPhotos} title={content.copy.galleryTitle} tone={toneOf('gallery')} clientPreview={clientPreview} />}
   {display.sleeping && <SleepingSection content={content} tone={toneOf('sleeping')} />}
   {display.amenities && <AmenitiesSection amenities={content.amenities} copy={content.copy} tone={toneOf('amenities')} />}
   {display.location && <LocationSection content={content} tone={toneOf('location')} clientPreview={clientPreview} />}

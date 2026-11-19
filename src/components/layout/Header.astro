@@ -205,6 +205,14 @@ const homeUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_UR
   /* Com JS: menu recolhível. (scripting: enabled) aplica o estado já na 1ª
      pintura — sem salto de layout quando o script carrega. */
   @media (max-width: 1023.98px) and (scripting: enabled) {
+    .site-header[data-open] {
+      z-index: 50;
+    }
+
+    :global(body:has([data-header][data-open])) {
+      overflow: hidden;
+    }
+
     .site-nav {
       position: fixed;
       inset: 0;

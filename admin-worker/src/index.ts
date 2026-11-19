@@ -1,8 +1,7 @@
 /**
  * Worker do painel do Residencial Estrela Dalva.
  * Configuração: admin-worker/wrangler.jsonc (D1 e variáveis) + secrets
- * (PROVISIONING_KEY, CONFIG_ENCRYPTION_KEY, SESSION_SECRET). Ver
- * docs/10-painel-administrativo-github.md.
+ * (PROVISIONING_KEY, CONFIG_ENCRYPTION_KEY, SESSION_SECRET).
  */
 import { estrelaDalvaSpec } from '../../src/admin-sites/estrela-dalva';
 import { residencialSchema } from '../../src/lib/content/schema';

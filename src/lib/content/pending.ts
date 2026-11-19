@@ -42,7 +42,7 @@ export function getPendingItems(c: Residencial): PendingItem[] {
 export class LaunchBlockedError extends Error {
   constructor(public readonly items: PendingItem[]) {
     super(
-      'Build de produção bloqueado — dados obrigatórios pendentes (ver docs/PENDENCIAS-CLIENTE.md):\n' +
+      'Build de produção bloqueado — dados obrigatórios pendentes:\n' +
         items.map((i) => `  - ${i.label} (${i.field})`).join('\n') +
         '\nPara revisão com o cliente, use PUBLIC_DEPLOY_ENV=preview.',
     );

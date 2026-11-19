@@ -105,7 +105,8 @@
     { "src": "/fotos/Varanda Aconchegante com Churrasqueira.png", "alt": "Varanda com churrasqueira", "group": "externa" },
     { "src": "/fotos/Varanda Elegante com Mesa e Cadeiras de Prata.png", "alt": "Varanda com mesa e cadeiras", "group": "externa" },
     { "src": "/fotos/Lavanderia externa moderna com plantas.png", "alt": "Lavanderia externa com plantas", "group": "externa" },
-    { "src": "/fotos/Banheiro Moderno com Box de Vidro.png", "alt": "Banheiro moderno com box de vidro", "group": "detalhes" }
+    { "src": "/fotos/Banheiro Moderno com Box de Vidro.png", "alt": "Banheiro moderno com box de vidro", "group": "detalhes" },
+    { "src": "/fotos/Calçadão Noturno dos Ingleses.png", "alt": "Calçadão do Centrinho dos Ingleses à noite", "group": "regiao" }
   ],
   "copy": {
     "galleryTitle": "Fotos do *loft*",
