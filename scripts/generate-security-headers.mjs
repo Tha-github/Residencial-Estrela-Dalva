@@ -53,9 +53,14 @@ const metaCsp=[
   "form-action 'self'",
   'upgrade-insecure-requests',
 ].join('; ');
+const adminHtml = await readFile('dist/admin/index.html', 'utf8');
+const adminCsp = adminHtml.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/i)?.[1];
+if (!adminCsp) throw new Error('Admin page is missing its Content Security Policy');
+
 for(const file of await htmlFiles('dist')){
   const html=await readFile(file,'utf8');
-  if(!html.includes('</head>'))continue;
+  // Browsers enforce every CSP. Pages with their own policy must keep it alone.
+  if(!html.includes('</head>') || /<meta\b[^>]*http-equiv="Content-Security-Policy"/i.test(html))continue;
   await writeFile(file,html.replace('</head>',`<meta http-equiv="Content-Security-Policy" content="${metaCsp}"></head>`));
 }
 
@@ -71,6 +76,8 @@ const headers=`/*
   Cache-Control: public, max-age=31536000, immutable
 
 /admin/*
+  ! Content-Security-Policy
+  Content-Security-Policy: ${adminCsp}; frame-ancestors 'none'
   Cache-Control: no-store
 `;
 await writeFile('dist/_headers',headers);

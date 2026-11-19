@@ -35,6 +35,17 @@ async function verifyScriptHashes(dir){
 }
 await verifyScriptHashes('dist');
 
+const adminHtml = await readFile('dist/admin/index.html', 'utf8');
+const adminPolicies = [...adminHtml.matchAll(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/gi)];
+assert.equal(adminPolicies.length, 1, 'Admin must have exactly one CSP meta policy');
+const adminPolicy = adminPolicies[0][1];
+assert.ok(headers.includes(`/admin/*\n  ! Content-Security-Policy\n  Content-Security-Policy: ${adminPolicy};`), 'Admin HTTP CSP must match its meta policy');
+if (process.env.PUBLIC_ADMIN_API_URL) {
+  const workerOrigin = new URL(process.env.PUBLIC_ADMIN_API_URL).origin;
+  const connectSources = adminPolicy.match(/\bconnect-src ([^;]+)/)?.[1].split(/\s+/) ?? [];
+  assert.ok(connectSources.includes(workerOrigin), 'Admin CSP must allow connections to the configured Worker');
+}
+
 if(mode==='production'){
   const site=new URL(process.env.PUBLIC_SITE_URL);
   const root=site.origin+'/';
