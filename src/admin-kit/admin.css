@@ -199,6 +199,10 @@ textarea {
   margin-bottom: 8px;
   color: var(--a-muted);
 }
+.login__form {
+  display: grid;
+  gap: 12px;
+}
 .login__error {
   padding: 10px 12px;
   border-radius: 8px;

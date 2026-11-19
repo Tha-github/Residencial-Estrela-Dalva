@@ -25,6 +25,7 @@ import {
   b64,
   createSession,
   sign,
+  hashPassword,
   timingSafeEqual,
   verifyPassword,
   verifySession,
@@ -34,9 +35,19 @@ import { GitHub, GitHubError, type TreeChange } from './github';
 import { checkImage } from './images';
 
 export interface Env {
-  GITHUB_TOKEN: string;
-  ADMIN_ACCESS_KEY: string;
-  ADMIN_PASSWORD_HASH: string;
+  GITHUB_TOKEN?: string;
+  ADMIN_ACCESS_KEY?: string;
+  ADMIN_PASSWORD_HASH?: string;
+  PROVISIONING_KEY?: string;
+  CONFIG_ENCRYPTION_KEY?: string;
+  CONFIG?: {
+    prepare(query: string): {
+      bind(...values: unknown[]): {
+        first<T>(): Promise<T | null>;
+        run(): Promise<{ success: boolean }>;
+      };
+    };
+  };
   SESSION_SECRET: string;
   GITHUB_REPO: string;
   GITHUB_BRANCH: string;
@@ -52,6 +63,64 @@ export interface SiteAdapter {
   spec: SiteSpec;
   /** Valida o conteúdo completo com o schema do site. */
   validate(content: unknown): { path: string; message: string }[];
+}
+
+interface PanelConfig {
+  accessKey: string;
+  passwordHash: string;
+  githubToken: string;
+}
+
+async function encryptionKey(value: string) {
+  const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+  const raw = b64.decode(base64 + '='.repeat((4 - (base64.length % 4)) % 4));
+  if (raw.length !== 32) throw new HttpError(503, 'Chave de criptografia inválida no Worker.');
+  return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
+}
+
+async function encryptConfig(config: PanelConfig, key: string) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = new Uint8Array(
+    await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      await encryptionKey(key),
+      new TextEncoder().encode(JSON.stringify(config)),
+    ),
+  );
+  const packed = new Uint8Array(iv.length + encrypted.length);
+  packed.set(iv);
+  packed.set(encrypted, iv.length);
+  return b64.encode(packed);
+}
+
+async function decryptConfig(value: string, key: string): Promise<PanelConfig> {
+  const packed = b64.decode(value);
+  const plaintext = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: packed.slice(0, 12) },
+    await encryptionKey(key),
+    packed.slice(12),
+  );
+  return JSON.parse(new TextDecoder().decode(plaintext)) as PanelConfig;
+}
+
+async function readConfig(env: Env): Promise<PanelConfig | null> {
+  if (env.CONFIG) {
+    const row = await env.CONFIG.prepare('SELECT ciphertext FROM panel_config WHERE id = ?1')
+      .bind('estrela-dalva')
+      .first<{ ciphertext: string }>();
+    if (row) {
+      if (!env.CONFIG_ENCRYPTION_KEY) throw new HttpError(503, 'Configuração do painel incompleta.');
+      return decryptConfig(row.ciphertext, env.CONFIG_ENCRYPTION_KEY);
+    }
+  }
+  if (env.GITHUB_TOKEN && env.ADMIN_ACCESS_KEY && env.ADMIN_PASSWORD_HASH) {
+    return {
+      githubToken: env.GITHUB_TOKEN,
+      accessKey: env.ADMIN_ACCESS_KEY,
+      passwordHash: env.ADMIN_PASSWORD_HASH,
+    };
+  }
+  return null;
 }
 
 function storedPhotoPath(src: string, spec: SiteSpec): string | null {
@@ -147,8 +216,68 @@ export async function handle(
   }
 
   try {
-    const gh = () => new GitHub(env.GITHUB_TOKEN, env.GITHUB_REPO, env.GITHUB_BRANCH, fetcher);
     const route = `${request.method} ${url.pathname}`;
+
+    if (route === 'GET /api/setup/status') {
+      return json({ configured: Boolean(await readConfig(env)) }, 200, cors);
+    }
+
+    if (route === 'POST /api/setup') {
+      if (
+        !env.CONFIG ||
+        !env.CONFIG_ENCRYPTION_KEY ||
+        !env.PROVISIONING_KEY ||
+        !env.SESSION_SECRET
+      ) {
+        throw new HttpError(503, 'A configuração inicial ainda não foi preparada no Worker.');
+      }
+      if (env.LOGIN_LIMITER) {
+        const ip = request.headers.get('CF-Connecting-IP') ?? 'anon';
+        const { success } = await env.LOGIN_LIMITER.limit({ key: `setup:${ip}` });
+        if (!success) throw new HttpError(429, 'Muitas tentativas. Aguarde um minuto.');
+      }
+      const body = await readJson(request, 16 * 1024);
+      const code = new TextEncoder().encode(String(body.provisioningCode ?? ''));
+      const expected = new TextEncoder().encode(env.PROVISIONING_KEY);
+      if (!timingSafeEqual(code, expected)) {
+        await new Promise((r) => setTimeout(r, 700));
+        throw new HttpError(401, 'Código de configuração incorreto.');
+      }
+      const accessKey = String(body.accessKey ?? '');
+      const password = String(body.password ?? '');
+      const githubToken = String(body.githubToken ?? '').trim();
+      if (accessKey.length < 20 || accessKey.length > 256 || password.length < 10 || password.length > 256) {
+        throw new HttpError(422, 'Use uma chave com pelo menos 20 caracteres e uma senha com 10 a 256 caracteres.');
+      }
+      if (!githubToken || githubToken.length > 512) throw new HttpError(422, 'Informe um token GitHub válido.');
+
+      const githubCheck = await fetcher(`https://api.github.com/repos/${env.GITHUB_REPO}`, {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${githubToken}`,
+          'X-GitHub-Api-Version': '2022-11-28',
+          'User-Agent': 'topsite-admin-setup',
+        },
+      });
+      if (!githubCheck.ok) throw new HttpError(422, 'O token GitHub não tem acesso ao repositório configurado.');
+      const repository = (await githubCheck.json()) as { permissions?: { push?: boolean } };
+      if (repository.permissions?.push !== true) {
+        throw new HttpError(422, 'O token GitHub precisa ter permissão de escrita em Contents nesse repositório.');
+      }
+
+      const ciphertext = await encryptConfig(
+        { accessKey, passwordHash: await hashPassword(password), githubToken },
+        env.CONFIG_ENCRYPTION_KEY,
+      );
+      try {
+        await env.CONFIG.prepare(
+          'INSERT INTO panel_config (id, ciphertext) VALUES (?1, ?2)',
+        ).bind('estrela-dalva', ciphertext).run();
+      } catch {
+        throw new HttpError(409, 'O painel já foi configurado.');
+      }
+      return json({ configured: true }, 201, cors);
+    }
 
     if (route === 'POST /api/login') {
       if (env.LOGIN_LIMITER) {
@@ -157,16 +286,17 @@ export async function handle(
         if (!success) throw new HttpError(429, 'Muitas tentativas. Aguarde um minuto.');
       }
       const body = await readJson(request, 4096);
-      if (!env.ADMIN_ACCESS_KEY || !env.ADMIN_PASSWORD_HASH || !env.SESSION_SECRET) {
+      const config = await readConfig(env);
+      if (!config || !env.SESSION_SECRET) {
         throw new HttpError(503, 'O acesso ao painel ainda não foi configurado.');
       }
       const accessKey = String(body.accessKey ?? '');
-      const expectedKey = new TextEncoder().encode(env.ADMIN_ACCESS_KEY);
+      const expectedKey = new TextEncoder().encode(config.accessKey);
       const submittedKey = new TextEncoder().encode(accessKey);
       const keyMatches = timingSafeEqual(submittedKey, expectedKey);
       const passwordMatches = await verifyPassword(
         String(body.password ?? ''),
-        env.ADMIN_PASSWORD_HASH,
+        config.passwordHash,
       );
       const ok = keyMatches && passwordMatches;
       if (!ok) {
@@ -185,6 +315,10 @@ export async function handle(
     }
 
     if (route === 'GET /api/session') return new Response(null, { status: 204, headers: cors });
+
+    const config = await readConfig(env);
+    if (!config) throw new HttpError(503, 'O painel ainda não foi configurado.');
+    const gh = () => new GitHub(config.githubToken, env.GITHUB_REPO, env.GITHUB_BRANCH, fetcher);
 
     if (route === 'GET /api/content') {
       const github = gh();

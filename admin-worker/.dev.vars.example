@@ -1,0 +1,4 @@
+# Copie para .dev.vars (ignorado pelo Git) e substitua pelos valores locais.
+PROVISIONING_KEY=use-o-valor-gerado-por-admin-setup-secrets
+CONFIG_ENCRYPTION_KEY=use-o-valor-gerado-por-admin-setup-secrets
+SESSION_SECRET=use-o-valor-gerado-por-admin-setup-secrets

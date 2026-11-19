@@ -1,9 +1,8 @@
 // Worker independente do painel administrativo — Residencial Estrela Dalva.
-// Variáveis públicas aqui; segredos SOMENTE via `wrangler secret put`:
-//   GITHUB_TOKEN         token fine-grained, só este repositório (Contents: RW, Actions: R)
-//   ADMIN_ACCESS_KEY     chave aleatória gerada por `npm run admin:hash-password`
-//   ADMIN_PASSWORD_HASH  gerado por `npm run admin:hash-password`
-//   SESSION_SECRET       texto aleatório longo (≥ 32 caracteres)
+// Segredos SOMENTE via `wrangler secret put`:
+//   PROVISIONING_KEY      código gerado por `npm run admin:setup-secrets`
+//   CONFIG_ENCRYPTION_KEY chave AES-256 gerada pelo mesmo comando
+//   SESSION_SECRET        chave HMAC gerada pelo mesmo comando
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "estrela-dalva-admin",
@@ -12,9 +11,17 @@
   "vars": {
     "GITHUB_REPO": "Tha-github/Residencial-Estrela-Dalva",
     "GITHUB_BRANCH": "main",
-    "ALLOWED_ORIGINS": "https://tha-github.github.io",
+    "ALLOWED_ORIGINS": "https://tha-github.github.io,http://localhost:4321",
     "SESSION_HOURS": "8",
   },
+  "d1_databases": [
+    {
+      "binding": "CONFIG",
+      "database_name": "estrela-dalva-admin-config",
+    "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations",
+    },
+  ],
   "observability": {
     "enabled": true,
   },

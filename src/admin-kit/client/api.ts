@@ -90,6 +90,17 @@ export class Api {
     this.token = r.token;
   }
 
+  setupStatus() {
+    return this.call<{ configured: boolean }>('/api/setup/status');
+  }
+
+  setup(values: { provisioningCode: string; githubToken: string; accessKey: string; password: string }) {
+    return this.call<{ configured: boolean }>('/api/setup', {
+      method: 'POST',
+      body: JSON.stringify(values),
+    });
+  }
+
   async hasSession(): Promise<boolean> {
     if (!this.auth()) return false;
     try {

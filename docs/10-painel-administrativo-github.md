@@ -1,15 +1,36 @@
 # Painel administrativo — Residencial Estrela Dalva
 
-O painel em `/admin/` segue o padrão Top Site Admin do Residencial Ametista. A interface é estática no GitHub Pages; login, validação, upload e publicação são processados por um Cloudflare Worker exclusivo deste repositório.
+O painel em `/admin/` segue o padrão Top Site Admin do Residencial Ametista. A interface é estática no GitHub Pages; autenticação, configuração inicial, upload e publicação passam por um Cloudflare Worker deste repositório.
 
-```text
-Proprietário → chave de acesso + senha → Worker Estrela Dalva → GitHub API
-                               │                    ├── commit em src/data/residencial.json
-                               │                    ├── fotos em src/assets/fotos/uploads/
-                               └── token de sessão  └── Actions publica no GitHub Pages
+## Configuração inicial pela tela
+
+Na primeira visita, `/admin/` mostra o botão **Configurar chave secreta e senha**. O formulário pede o código de provisionamento do Worker, um token GitHub fine-grained, a chave de acesso escolhida pelo proprietário e uma senha. Os dados são enviados ao Worker por HTTPS. O token, a chave e o hash da senha são armazenados cifrados com AES-GCM no D1; o Worker nunca devolve o token ao navegador.
+
+A configuração só pode ser feita uma vez. O código de provisionamento é guardado como secret no Worker e funciona como autorização para o cadastro inicial.
+
+### Abrir localmente
+
+Para ver a tela em `http://localhost:4321/admin/`, rode o Worker e o site em terminais separados:
+
+```powershell
+npm run admin:setup-secrets
 ```
 
-O token do GitHub, a chave de acesso e o hash da senha ficam como secrets do Worker. O navegador envia a chave de acesso e a senha somente ao Worker por HTTPS e recebe apenas um token de sessão de oito horas. Não há conexão, credencial nem arquivo compartilhado com o Residencial Ametista.
+Copie os três valores impressos para `admin-worker/.dev.vars` (arquivo local ignorado pelo Git). Depois rode a migração local e inicie o Worker:
+
+```powershell
+npx wrangler@4.164.0 d1 migrations apply estrela-dalva-admin-config --local --config admin-worker/wrangler.jsonc
+npm run admin:dev
+```
+
+No segundo terminal, aponte o site para o Worker local e inicie o Astro:
+
+```powershell
+$env:PUBLIC_ADMIN_API_URL = "http://localhost:8787"
+npm run dev
+```
+
+O botão aparece sem o Worker, mas o formulário só pode salvar quando a conexão local ou publicada estiver disponível.
 
 ## Módulos editáveis
 
@@ -28,54 +49,60 @@ Listas fixas não podem ganhar nem perder itens. O painel não oferece HTML, có
 
 ## Configuração única da Top Site
 
-### 1. Worker e secrets
+### 1. Criar o banco D1
 
-O Worker já está configurado em `admin-worker/wrangler.jsonc` para o repositório `Tha-github/Residencial-Estrela-Dalva`, branch `main`, e origem pública `https://tha-github.github.io`.
-
-Crie um token GitHub fine-grained restrito **somente** a `Tha-github/Residencial-Estrela-Dalva`, com `Contents: Read and write` e `Actions: Read-only`. Faça login na conta Cloudflare que hospedará o Worker e configure:
+Na conta Cloudflare que hospedará o Worker, crie o banco:
 
 ```powershell
-npm run admin:hash-password
+npx wrangler@4.164.0 d1 create estrela-dalva-admin-config
+```
+
+Copie o `database_id` retornado para `database_id` em `admin-worker/wrangler.jsonc`, substituindo o UUID zerado. Aplique a migração remota:
+
+```powershell
+npx wrangler@4.164.0 d1 migrations apply estrela-dalva-admin-config --remote --config admin-worker/wrangler.jsonc
+```
+
+### 2. Cadastrar secrets e publicar o Worker
+
+Gere três valores privados e faça login na conta Cloudflare:
+
+```powershell
+npm run admin:setup-secrets
 npx wrangler@4.164.0 login
-npx wrangler@4.164.0 secret put GITHUB_TOKEN --config admin-worker/wrangler.jsonc
-npx wrangler@4.164.0 secret put ADMIN_ACCESS_KEY --config admin-worker/wrangler.jsonc
-npx wrangler@4.164.0 secret put ADMIN_PASSWORD_HASH --config admin-worker/wrangler.jsonc
+npx wrangler@4.164.0 secret put PROVISIONING_KEY --config admin-worker/wrangler.jsonc
+npx wrangler@4.164.0 secret put CONFIG_ENCRYPTION_KEY --config admin-worker/wrangler.jsonc
 npx wrangler@4.164.0 secret put SESSION_SECRET --config admin-worker/wrangler.jsonc
 npm run admin:deploy
 ```
 
-O primeiro comando pede a senha do proprietário sem exibi-la e imprime `ADMIN_ACCESS_KEY`, `ADMIN_PASSWORD_HASH` e `SESSION_SECRET`. Grave cada valor com o `wrangler secret put` correspondente e guarde a chave de acesso em um gerenciador de senhas para usá-la na tela `/admin/`. Nunca salve a senha, a chave, o token GitHub ou os valores de sessão em arquivos versionados ou variáveis `PUBLIC_*`. O token do GitHub é somente para o Worker; não é a chave digitada no login.
+O gerador imprime um código de provisionamento, uma chave AES-256 e uma chave de sessão. Cadastre cada valor com o comando correspondente e guarde o `PROVISIONING_KEY` em um gerenciador de senhas; ele será usado no formulário inicial de `/admin/`. Nunca coloque esses valores em arquivos versionados ou variáveis `PUBLIC_*`.
 
-O deploy do Worker informa uma URL semelhante a `https://estrela-dalva-admin.<conta>.workers.dev`.
+O deploy informa uma URL semelhante a `https://estrela-dalva-admin.<conta>.workers.dev`.
 
-### 2. Ligar o GitHub Pages ao Worker
+### 3. Conectar o GitHub Pages ao Worker
 
-No repositório do Estrela Dalva, abra **Settings → Secrets and variables → Actions → Variables** e crie:
+No repositório `Tha-github/Residencial-Estrela-Dalva`, abra **Settings → Secrets and variables → Actions → Variables** e crie `ADMIN_API_URL` com a URL HTTPS do Worker. O workflow `pages.yml` injeta essa variável como `PUBLIC_ADMIN_API_URL` no build. Execute **Actions → Build and deploy GitHub Pages → Run workflow**.
 
-| Nome | Valor |
-| --- | --- |
-| `ADMIN_API_URL` | URL HTTPS do Worker publicada no passo anterior |
+### 4. Abrir `/admin/` e concluir o cadastro
 
-O workflow `pages.yml` injeta essa variável como `PUBLIC_ADMIN_API_URL` no build. Execute **Actions → Build and deploy GitHub Pages → Run workflow** para publicar a configuração. O painel ficará em `https://tha-github.github.io/Residencial-Estrela-Dalva/admin/`.
+Crie um token GitHub fine-grained restrito somente ao repositório `Tha-github/Residencial-Estrela-Dalva`, com `Contents: Read and write` e `Actions: Read-only`. Abra `https://tha-github.github.io/Residencial-Estrela-Dalva/admin/`, clique em **Configurar chave secreta e senha** e informe:
 
-Sem `ADMIN_API_URL`, o endereço `/admin/` mostra que a configuração ainda está pendente e não tenta autenticar.
+- o `PROVISIONING_KEY` criado no passo 2;
+- o token GitHub;
+- uma chave de acesso de pelo menos 20 caracteres;
+- uma senha de pelo menos 10 caracteres.
 
-### 3. Conferência após configurar
-
-1. Acesse `/admin/`; uma senha incorreta deve ser recusada.
-2. Entre com a senha do proprietário e confirme que os módulos carregam.
-3. Altere um texto, publique e confira o commit no repositório Estrela Dalva.
-4. Aguarde o workflow Pages concluir e confirme a mudança no site.
-5. Teste o upload de uma foto, reordenação, links e restauração das cores.
+O Worker valida se o token tem acesso de escrita ao repositório e salva a configuração no D1 cifrada. Depois disso, o cadastro inicial fica bloqueado e a tela passa a pedir somente chave de acesso e senha.
 
 ## Operação e recuperação
 
-- Cada publicação cria um commit único de conteúdo e imagens. GitHub Actions publica o commit.
-- Se alguém alterar o conteúdo no GitHub enquanto o painel está aberto, o Worker recusa a publicação conflitante; recarregue e reaplique a mudança.
-- Se a senha for esquecida, gere novo hash com `npm run admin:hash-password` e substitua `ADMIN_PASSWORD_HASH`. Troque também `SESSION_SECRET` para invalidar sessões abertas.
-- Se o token GitHub expirar, gere outro com as mesmas permissões mínimas e substitua o secret `GITHUB_TOKEN`.
+- Cada publicação cria um commit com o conteúdo e as fotos novas; GitHub Actions publica o commit.
+- Se o conteúdo mudar no GitHub enquanto o painel estiver aberto, o Worker recusa a publicação conflitante. Recarregue e reaplique a mudança.
+- Para trocar ou recuperar a senha, chave ou token, remova a linha `estrela-dalva` da tabela `panel_config` no D1 e repita o cadastro pelo painel. O `PROVISIONING_KEY` continua necessário.
+- Se o token GitHub expirar, gere outro com as mesmas permissões mínimas e faça novamente o cadastro inicial após remover a linha existente.
 - Logs técnicos ficam no painel Cloudflare do Worker `estrela-dalva-admin`; não registre credenciais nos logs.
 
 ## Estado da integração
 
-O código do painel, Worker, autenticação, validação, upload, commit e publicação automática está pronto e coberto por testes locais com uma API GitHub simulada. A conexão real depende da Top Site criar o Worker e os secrets/variável acima. Nenhuma senha ou token foi inventado ou colocado no projeto.
+O código do painel, Worker, cadastro inicial, armazenamento cifrado, autenticação, upload, commit e publicação automática está pronto. Para o login funcionar no site publicado, a Top Site ainda precisa criar o D1, cadastrar os secrets, publicar o Worker e definir `ADMIN_API_URL` no GitHub Actions. Nenhuma senha ou token foi inventado ou incluído no projeto.

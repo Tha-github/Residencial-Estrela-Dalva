@@ -147,6 +147,85 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
     keyInput.focus();
   }
 
+  function showSetup(apiReady: boolean, message?: string) {
+    const open = h('button', { type: 'button', class: 'btn btn--primary btn--block' }, 'Configurar chave secreta e senha');
+    const note = h(
+      'p',
+      { class: 'login__lead' },
+      apiReady
+        ? 'Na primeira configuração, informe o código de provisionamento do Worker, o token GitHub e crie sua chave de acesso e senha.'
+        : 'A interface está pronta. Para concluir a configuração, o painel precisa estar conectado ao Worker seguro.',
+    );
+    const error = h('p', { class: 'login__error', role: 'alert', hidden: !message }, message ?? '');
+    const card = h(
+      'div',
+      { class: 'login__card' },
+      h('div', { class: 'login__brand' }, h('span', { class: 'login__logo' }, icon('lock', 22)), h('span', {}, 'Top Site · Painel')),
+      h('h1', { class: 'login__title' }, spec.siteName),
+      note,
+      error,
+      open,
+    );
+
+    open.addEventListener('click', () => renderSetupForm(card, error, apiReady));
+    root.replaceChildren(h('main', { class: 'login' }, card));
+  }
+
+  function renderSetupForm(card: HTMLElement, error: HTMLElement, apiReady: boolean) {
+    const fields = [
+      { id: 'admin-provisioning-code', label: 'Código secreto de provisionamento do Worker', autocomplete: 'off' },
+      { id: 'admin-github-token', label: 'Token do GitHub', autocomplete: 'off' },
+      { id: 'admin-access-key', label: 'Chave de acesso do painel (mínimo de 20 caracteres)', autocomplete: 'new-password' },
+      { id: 'admin-password', label: 'Senha do painel (mínimo de 10 caracteres)', autocomplete: 'new-password' },
+    ];
+    const inputs = fields.map(({ id, label, autocomplete }) => {
+      const input = h('input', {
+        id,
+        type: 'password',
+        class: 'inp',
+        autocomplete,
+        spellcheck: false,
+        required: true,
+        minlength: id === 'admin-access-key' ? 20 : id === 'admin-password' ? 10 : undefined,
+      });
+      return { input, row: h('div', { class: 'fld' }, h('label', { class: 'fld__label', for: id }, label), input) };
+    });
+    const save = h('button', { type: 'submit', class: 'btn btn--primary btn--block' }, 'Salvar configuração');
+    const cancel = h('button', { type: 'button', class: 'btn btn--ghost btn--block' }, 'Voltar');
+    const form = h('form', { class: 'login__form' }, ...fields.map((_, i) => inputs[i]!.row), save, cancel);
+    if (!apiReady) {
+      save.disabled = true;
+      form.insertBefore(
+        h('p', { class: 'login__lead' }, 'O Worker ainda não está conectado. A configuração será enviada por HTTPS quando a URL dele for publicada.'),
+        form.firstChild,
+      );
+    }
+    cancel.addEventListener('click', () => showSetup(apiReady));
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      save.disabled = true;
+      save.textContent = 'Configurando…';
+      error.hidden = true;
+      try {
+        await api.setup({
+          provisioningCode: inputs[0]!.input.value,
+          githubToken: inputs[1]!.input.value,
+          accessKey: inputs[2]!.input.value,
+          password: inputs[3]!.input.value,
+        });
+        showLogin('Configuração concluída. Entre com sua chave de acesso e senha.');
+      } catch (err) {
+        error.textContent = err instanceof ApiError ? err.message : ERR_GENERIC;
+        error.hidden = false;
+      } finally {
+        save.disabled = false;
+        save.textContent = 'Salvar configuração';
+      }
+    });
+    card.replaceChildren(...Array.from(card.children).slice(0, 3), error, form);
+    inputs[0]!.input.focus();
+  }
+
   async function load() {
     root.replaceChildren(
       h(
@@ -553,25 +632,22 @@ export function startAdmin(root: HTMLElement, opts: AdminOptions) {
   /* ------------------------------ início ------------------------------ */
 
   if (!opts.apiBase) {
-    root.replaceChildren(
-      h(
-        'main',
-        { class: 'login' },
-        h(
-          'div',
-          { class: 'login__card' },
-          h('h1', { class: 'login__title' }, spec.siteName),
-          h(
-            'p',
-            { class: 'login__lead' },
-            'O painel ainda não foi configurado. Fale com a Top Site.',
-          ),
-        ),
-      ),
-    );
+    showSetup(false);
     return;
   }
-  void api.hasSession().then((ok) => (ok ? load() : showLogin()));
+  void api.setupStatus().then(async ({ configured }) => {
+    if (!configured) return showSetup(true);
+    if (await api.hasSession()) await load();
+    else showLogin();
+  }).catch((err: unknown) => {
+    root.replaceChildren(
+      h('main', { class: 'login' }, h('div', { class: 'login__card' },
+        h('h1', { class: 'login__title' }, spec.siteName),
+        h('p', { class: 'login__lead' }, err instanceof ApiError ? err.message : ERR_GENERIC),
+        retryButton(),
+      )),
+    );
+  });
 }
 
 /* ------------------------- prévia genérica ------------------------- */

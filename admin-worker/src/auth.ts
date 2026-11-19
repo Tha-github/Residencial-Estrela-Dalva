@@ -1,9 +1,7 @@
 /**
  * Autenticação do painel (Web Crypto, sem dependências).
  *
- * - Senha: guardada SOMENTE como hash PBKDF2-SHA256 com sal aleatório, no
- *   secret ADMIN_PASSWORD_HASH ("pbkdf2-sha256$<iterações>$<sal>$<hash>").
- *   Gere com `npm run admin:hash-password`.
+ * - Senha: hash PBKDF2-SHA256 com sal aleatório, dentro do registro cifrado no D1.
  * - Sessão: token assinado com HMAC-SHA256 (secret SESSION_SECRET) e
  *   validade curta. Sem estado no servidor; trocar SESSION_SECRET encerra
  *   todas as sessões.
